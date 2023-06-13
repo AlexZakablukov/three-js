@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "dat.gui": "^0.7.9",
     "next": "13.4.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -16,6 +17,7 @@
     "three": "^0.153.0"
   },
   "devDependencies": {
+    "@types/dat.gui": "^0.7.10",
     "@types/node": "20.3.1",
     "@types/react": "18.2.12",
     "@types/react-dom": "18.2.5",

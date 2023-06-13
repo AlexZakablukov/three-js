@@ -42,7 +42,7 @@ export class ThreeScene {
     this.scene.add(this.ambientLight);
 
     this.directionalLight = new DirectionalLight(0xffffff, 0.5);
-    this.directionalLight.position.set(0, 64, 32);
+    this.directionalLight.position.set(0, 2, 4);
     this.scene.add(this.directionalLight);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
