@@ -5,7 +5,7 @@ import {
   AmbientLight,
   DirectionalLight,
 } from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "three/examples/jsm/libs/stats.module";
 
 export class ThreeScene {
@@ -27,7 +27,11 @@ export class ThreeScene {
   }
 
   public init() {
-    this.wrapper = document.getElementById(this.wrapperId);
+    const wrapper = document.getElementById(this.wrapperId);
+    if (!wrapper) {
+      return;
+    }
+    this.wrapper = wrapper;
     const { width, height, ratio } = this.getWrapperSizes();
 
     this.scene = new Scene();
@@ -47,6 +51,7 @@ export class ThreeScene {
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.stats = new Stats();
+    // @ts-ignore
     this.stats.domElement.style.cssText = "position:absolute;top:0px;left:0px;";
     this.wrapper.appendChild(this.stats.dom);
 
