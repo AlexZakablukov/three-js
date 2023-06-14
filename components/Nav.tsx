@@ -15,11 +15,15 @@ const LINKS = [
     href: Routes.RayCasterSpheres,
     text: "Spheres (raycaster)",
   },
+  {
+    href: Routes.FloorPlan,
+    text: "Floorplan",
+  },
 ];
 
 export const Nav: FC = () => {
   return (
-    <nav className="flex-col h-full bg-white p-6">
+    <nav className="flex flex-col h-full bg-white p-6">
       {LINKS.map(({ href, text }) => (
         <Link
           key={href}
@@ -29,6 +33,14 @@ export const Nav: FC = () => {
           {text}
         </Link>
       ))}
+      <a
+        className="mt-auto block bg-blue-600 text-white p-2 rounded-md text-center mb-2"
+        href="https://github.com/AlexZakablukov/three-js"
+        target="_blank"
+        rel="noreferrer"
+      >
+        GITHUB
+      </a>
     </nav>
   );
 };
