@@ -11,6 +11,10 @@ const LINKS = [
     href: Routes.CubeGui,
     text: "Cube (three.js + gui)",
   },
+  {
+    href: Routes.RayCasterSpheres,
+    text: "Spheres (raycaster)",
+  },
 ];
 
 export const Nav: FC = () => {

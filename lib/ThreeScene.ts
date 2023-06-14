@@ -4,9 +4,12 @@ import {
   WebGLRenderer,
   AmbientLight,
   DirectionalLight,
+  Vector2,
+  Raycaster,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "three/examples/jsm/libs/stats.module";
+import * as THREE from "three";
 
 export class ThreeScene {
   private wrapperId: string;
@@ -21,6 +24,11 @@ export class ThreeScene {
 
   private controls: OrbitControls;
   private stats: Stats;
+
+  public mouse: Vector2;
+  public rayCaster: Raycaster;
+
+  // private events:
 
   constructor(wrapperId: string) {
     this.wrapperId = wrapperId;
@@ -58,6 +66,13 @@ export class ThreeScene {
     window.addEventListener("resize", () => this.onWindowResize(), false);
   }
 
+  public initRayCaster() {
+    this.mouse = new Vector2();
+    this.rayCaster = new Raycaster();
+
+    this.wrapper.addEventListener("mousemove", this.onMouseMove.bind(this));
+  }
+
   public animate() {
     window.requestAnimationFrame(this.animate.bind(this));
     this.render();
@@ -73,6 +88,8 @@ export class ThreeScene {
       width: this.wrapper.clientWidth,
       height: this.wrapper.clientHeight,
       ratio: this.wrapper.clientWidth / this.wrapper.clientHeight,
+      offsetLeft: this.wrapper.offsetLeft,
+      offsetTop: this.wrapper.offsetTop,
     };
   }
 
@@ -81,5 +98,12 @@ export class ThreeScene {
     this.camera.aspect = ratio;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
+  }
+
+  private onMouseMove(event: MouseEvent) {
+    const { width, height, offsetTop, offsetLeft } = this.getWrapperSizes();
+
+    this.mouse.x = ((event.clientX - offsetLeft) / width) * 2 - 1;
+    this.mouse.y = -((event.clientY - offsetTop) / height) * 2 + 1;
   }
 }
