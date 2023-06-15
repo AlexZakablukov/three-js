@@ -10,35 +10,12 @@ import {
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { FloorPlanItem, IFloorPlanItem } from "@/lib/FloorPlanItem";
-import { Text } from "troika-three-text";
 
-export enum FloorPlanEvents {
-  OnItemClick = "onItemClick",
-}
+import { IFloorPlanOptions, IContainerSizes } from "../types/floorPlan";
+import { IFloorPlanItem } from "../types/prepared";
+import { FloorPlanHall } from "../models/FloorPlanHall";
 
-export interface IFloorPlanThreeJsItem extends IFloorPlanItem {
-  x: number;
-  y: number;
-}
-
-interface IOptions {
-  containerId: string;
-  enableControls?: boolean;
-  enableStats?: boolean;
-  items: IFloorPlanThreeJsItem[];
-  events?: Record<FloorPlanEvents, Function>;
-}
-
-interface IContainerSizes {
-  width: number;
-  height: number;
-  ratio: number;
-  offsetLeft: number;
-  offsetTop: number;
-}
-
-export class FloorPlanThreeJs {
+export class FloorPlan {
   private container: HTMLElement;
 
   private renderer: WebGLRenderer;
@@ -52,23 +29,14 @@ export class FloorPlanThreeJs {
   //ts-ignore
   private intersects: Intersection[];
 
-  constructor({
-    containerId,
-    enableStats = false,
-    enableControls = false,
-    items,
-    events,
-  }: IOptions) {
+  constructor({ containerId, items }: IFloorPlanOptions) {
     this.initRenderer(containerId);
     this.initScene();
     this.initCamera();
-    enableStats && this.initStats();
-    enableControls && this.initControls();
-    // TODO: add option to show/hide controls buttons
-    enableControls && this.initControlsButtons();
+    this.initStats();
+    this.initControls();
     this.initRayCaster();
     this.renderItems(items);
-    this.addEventListeners(events);
     this.animate();
   }
 
@@ -128,30 +96,6 @@ export class FloorPlanThreeJs {
     );
   }
 
-  private initControlsButtons() {
-    // TODO: make it universal and clearer
-    const zoomInButton = document.createElement("button");
-    zoomInButton.textContent = "+";
-    zoomInButton.addEventListener("click", () => {
-      this.camera.zoom += 0.1;
-      this.camera.updateProjectionMatrix();
-    });
-    zoomInButton.style.cssText =
-      "position:absolute;bottom:20px;right:0px;color:white;background:black;padding:4px;border-radius:4px;width:20px;height:20px;line-height:20px";
-
-    const zoomOutButton = document.createElement("button");
-    zoomOutButton.textContent = "-";
-    zoomOutButton.addEventListener("click", () => {
-      this.camera.zoom -= 0.1;
-      this.camera.updateProjectionMatrix();
-    });
-    zoomOutButton.style.cssText =
-      "position:absolute;bottom:0px;right:0px;color:white;background:black;padding:4px;border-radius:4px;width:20px;height:20px;line-height:20px";
-
-    this.container.appendChild(zoomInButton);
-    this.container.appendChild(zoomOutButton);
-  }
-
   public animate() {
     window.requestAnimationFrame(this.animate.bind(this));
     this.render();
@@ -169,61 +113,13 @@ export class FloorPlanThreeJs {
     console.log("destroyed");
   }
 
-  private renderItem(item: IFloorPlanThreeJsItem) {
-    const { width, height, color, x, y, data } = item;
-    const floorPlanItem = new FloorPlanItem({ width, height, color, data });
-    floorPlanItem.position.x = x;
-    floorPlanItem.position.y = y;
-    this.scene.add(floorPlanItem);
-
-    /*TEXT*/
-
-    if (data?.title) {
-      const label = new Text();
-      this.scene.add(label);
-
-      label.text = data.title;
-      label.fontSize = 16;
-      label.position.x = x;
-      label.position.y = y;
-      label.textAlign = "center";
-      label.anchorX = "center";
-      label.anchorY = "middle";
-      // label.position.z = 2;
-      label.color = 0x000000;
-
-      label.sync();
-      this.scene.updateMatrix();
-    }
+  private renderItem(item: IFloorPlanItem) {
+    const floorPlanMesh = new FloorPlanHall(item);
+    this.scene.add(floorPlanMesh);
   }
 
-  private renderItems(items: IFloorPlanThreeJsItem[]) {
+  private renderItems(items: IFloorPlanItem[]) {
     items.forEach((item) => this.renderItem(item));
-  }
-
-  private addEventListeners(events: IOptions["events"]) {
-    if (!events || !Object.keys(events).length) {
-      return;
-    }
-    for (const eventName in events) {
-      const handler = events?.[eventName as FloorPlanEvents];
-      switch (eventName) {
-        case FloorPlanEvents.OnItemClick:
-          this.container.addEventListener("click", () => {
-            if (!this.intersects.length) {
-              return;
-            }
-            const object = this.intersects[0].object;
-            //@ts-ignore
-            object.onClick && object.onClick();
-            //@ts-ignore
-            object.data && handler(object.data);
-          });
-          return;
-        default:
-          return;
-      }
-    }
   }
 
   private getContainerSizes(): IContainerSizes {

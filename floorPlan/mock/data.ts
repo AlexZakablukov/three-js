@@ -1,30 +1,6 @@
-export interface IData {
-  place: IPlace;
-}
+import { IDataApi } from "../types/api";
 
-export interface IPlace {
-  id: number;
-  name: string | null;
-  floorPlan: string;
-  halls: IHall[];
-}
-
-export interface IHall {
-  id: number;
-  place_id: number;
-  name: string;
-  planURL: string | null;
-  floor: number;
-  coords: string | null;
-  is_conf: boolean;
-  show_stand_name: any;
-  show_stand_company: any;
-  is_check_in: boolean;
-  is_hidden: boolean;
-  params: string | null;
-}
-
-const data = {
+export const dataApi: IDataApi = {
   place: {
     id: 61,
     name: null,

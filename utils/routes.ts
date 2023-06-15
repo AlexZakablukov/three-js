@@ -3,4 +3,5 @@ export enum Routes {
   CubeGui = "cube-gui",
   RayCasterSpheres = "ray-caster-spheres",
   FloorPlan = "floor-plan",
+  ExpoFloorPlan = "expo-floor-plan",
 }
