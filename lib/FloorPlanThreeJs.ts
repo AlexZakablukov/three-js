@@ -63,6 +63,8 @@ export class FloorPlanThreeJs {
     this.initCamera();
     enableStats && this.initStats();
     enableControls && this.initControls();
+    // TODO: add option to show/hide controls buttons
+    enableControls && this.initControlsButtons();
     this.initRayCaster();
     this.renderItems(items);
     this.addEventListeners(events);
@@ -123,6 +125,30 @@ export class FloorPlanThreeJs {
       "pointermove",
       this.onPointerMove.bind(this)
     );
+  }
+
+  private initControlsButtons() {
+    // TODO: make it universal and clearer
+    const zoomInButton = document.createElement("button");
+    zoomInButton.textContent = "+";
+    zoomInButton.addEventListener("click", () => {
+      this.camera.zoom += 0.1;
+      this.camera.updateProjectionMatrix();
+    });
+    zoomInButton.style.cssText =
+      "position:absolute;bottom:20px;right:0px;color:white;background:black;padding:4px;border-radius:4px;width:20px;height:20px;line-height:20px";
+
+    const zoomOutButton = document.createElement("button");
+    zoomOutButton.textContent = "-";
+    zoomOutButton.addEventListener("click", () => {
+      this.camera.zoom -= 0.1;
+      this.camera.updateProjectionMatrix();
+    });
+    zoomOutButton.style.cssText =
+      "position:absolute;bottom:0px;right:0px;color:white;background:black;padding:4px;border-radius:4px;width:20px;height:20px;line-height:20px";
+
+    this.container.appendChild(zoomInButton);
+    this.container.appendChild(zoomOutButton);
   }
 
   public animate() {
