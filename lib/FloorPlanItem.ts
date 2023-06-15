@@ -1,4 +1,4 @@
-import { Mesh, PlaneGeometry, MeshBasicMaterial } from "three";
+import { Mesh, PlaneGeometry, MeshBasicMaterial, Color } from "three";
 
 export interface IFloorPlanItemData {
   id: string;
@@ -21,7 +21,7 @@ export class FloorPlanItem extends Mesh {
     super();
     const { width, height, color, data } = props;
     this.geometry = new PlaneGeometry(width, height);
-    this.material = new MeshBasicMaterial({ color });
+    this.material = new MeshBasicMaterial({ color: new Color(color) });
     this.data = data;
   }
 

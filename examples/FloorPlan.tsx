@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { FloorPlanThreeJs, FloorPlanEvents } from "@/lib/FloorPlanThreeJs";
 import { IFloorPlanItemData } from "@/lib/FloorPlanItem";
-import { FLOOR_PLAN_ITEMS } from "@/utils/floorplanItems";
+import { FLOOR_PLAN_ITEMS, getRandomFloorItems } from "@/utils/floorplanItems";
 
 export const FloorPlan = () => {
   const [pickedItem, setPickedItem] = useState<IFloorPlanItemData | null>(null);
@@ -16,7 +16,8 @@ export const FloorPlan = () => {
       containerId: "floorPlan",
       enableStats: true,
       enableControls: true,
-      items: FLOOR_PLAN_ITEMS,
+      // items: FLOOR_PLAN_ITEMS,
+      items: getRandomFloorItems(1000),
       events: {
         [FloorPlanEvents.OnItemClick]: onItemClick,
       },

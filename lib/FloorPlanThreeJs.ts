@@ -192,8 +192,6 @@ export class FloorPlanThreeJs {
       // label.position.z = 2;
       label.color = 0x000000;
 
-      console.log("label", label);
-
       label.sync();
       this.scene.updateMatrix();
     }
@@ -215,7 +213,6 @@ export class FloorPlanThreeJs {
             if (!this.intersects.length) {
               return;
             }
-            console.log(this.intersects[0].object);
             const object = this.intersects[0].object;
             //@ts-ignore
             object.onClick();
