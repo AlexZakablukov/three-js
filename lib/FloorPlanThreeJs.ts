@@ -11,6 +11,7 @@ import {
 import Stats from "three/examples/jsm/libs/stats.module";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FloorPlanItem, IFloorPlanItem } from "@/lib/FloorPlanItem";
+import { Text } from "troika-three-text";
 
 export enum FloorPlanEvents {
   OnItemClick = "onItemClick",
@@ -174,6 +175,28 @@ export class FloorPlanThreeJs {
     floorPlanItem.position.x = x;
     floorPlanItem.position.y = y;
     this.scene.add(floorPlanItem);
+
+    /*TEXT*/
+
+    if (data?.title) {
+      const label = new Text();
+      this.scene.add(label);
+
+      label.text = data.title;
+      label.fontSize = 16;
+      label.position.x = x;
+      label.position.y = y;
+      label.textAlign = "center";
+      label.anchorX = "center";
+      label.anchorY = "middle";
+      // label.position.z = 2;
+      label.color = 0x000000;
+
+      console.log("label", label);
+
+      label.sync();
+      this.scene.updateMatrix();
+    }
   }
 
   private renderItems(items: IFloorPlanThreeJsItem[]) {

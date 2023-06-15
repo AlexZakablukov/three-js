@@ -9,7 +9,7 @@ export const FLOOR_PLAN_ITEMS: IFloorPlanThreeJsItem[] = [
     color: "red",
     data: {
       id: "1",
-      title: "card 1",
+      title: "Stand 1",
     },
   },
   {
@@ -20,7 +20,7 @@ export const FLOOR_PLAN_ITEMS: IFloorPlanThreeJsItem[] = [
     color: "green",
     data: {
       id: "2",
-      title: "card 2",
+      title: "Stand 2",
     },
   },
   {
@@ -31,7 +31,7 @@ export const FLOOR_PLAN_ITEMS: IFloorPlanThreeJsItem[] = [
     color: "blue",
     data: {
       id: "3",
-      title: "card 3",
+      title: "Stand 3",
     },
   },
   {
@@ -42,7 +42,7 @@ export const FLOOR_PLAN_ITEMS: IFloorPlanThreeJsItem[] = [
     color: "blue",
     data: {
       id: "4",
-      title: "card 4",
+      title: "Stand 4",
     },
   },
 ];
