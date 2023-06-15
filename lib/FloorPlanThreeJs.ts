@@ -11,7 +11,7 @@ import {
 import Stats from "three/examples/jsm/libs/stats.module";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FloorPlanItem, IFloorPlanItem } from "@/lib/FloorPlanItem";
-import { Text } from "troika-three-text";
+// import { Text } from "troika-three-text";
 
 export enum FloorPlanEvents {
   OnItemClick = "onItemClick",
@@ -155,13 +155,13 @@ export class FloorPlanThreeJs {
   public animate() {
     window.requestAnimationFrame(this.animate.bind(this));
     this.render();
-    this.stats && this.stats.update();
-    this.controls && this.controls.update();
-    this.raycaster && this.raycaster.setFromCamera(this.mouse, this.camera);
   }
 
   public render() {
     this.renderer.render(this.scene, this.camera);
+    this.stats && this.stats.update();
+    this.controls && this.controls.update();
+    this.raycaster && this.raycaster.setFromCamera(this.mouse, this.camera);
   }
 
   public destroy() {
@@ -175,26 +175,26 @@ export class FloorPlanThreeJs {
     floorPlanItem.position.x = x;
     floorPlanItem.position.y = y;
     this.scene.add(floorPlanItem);
-
-    /*TEXT*/
-
-    if (data?.title) {
-      const label = new Text();
-      this.scene.add(label);
-
-      label.text = data.title;
-      label.fontSize = 16;
-      label.position.x = x;
-      label.position.y = y;
-      label.textAlign = "center";
-      label.anchorX = "center";
-      label.anchorY = "middle";
-      // label.position.z = 2;
-      label.color = 0x000000;
-
-      label.sync();
-      this.scene.updateMatrix();
-    }
+    //
+    // /*TEXT*/
+    //
+    // if (data?.title) {
+    //   const label = new Text();
+    //   this.scene.add(label);
+    //
+    //   label.text = data.title;
+    //   label.fontSize = 16;
+    //   label.position.x = x;
+    //   label.position.y = y;
+    //   label.textAlign = "center";
+    //   label.anchorX = "center";
+    //   label.anchorY = "middle";
+    //   // label.position.z = 2;
+    //   label.color = 0x000000;
+    //
+    //   label.sync();
+    //   this.scene.updateMatrix();
+    // }
   }
 
   private renderItems(items: IFloorPlanThreeJsItem[]) {
@@ -215,9 +215,9 @@ export class FloorPlanThreeJs {
             }
             const object = this.intersects[0].object;
             //@ts-ignore
-            object.onClick();
+            object.onClick && object.onClick();
             //@ts-ignore
-            handler(object.data);
+            object.data && handler(object.data);
           });
           return;
         default:
