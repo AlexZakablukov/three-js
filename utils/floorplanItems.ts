@@ -17,8 +17,8 @@ export const getRandomFloorItems = (count: number = 10) => {
     items.push({
       width: randomBetween(0, 200),
       height: randomBetween(0, 100),
-      x: randomBetween(-500, 500),
-      y: randomBetween(-500, 500),
+      x: randomBetween(-5000, 5000),
+      y: randomBetween(-5000, 5000),
       color: randomColor(),
       data: {
         id: i.toString(),
