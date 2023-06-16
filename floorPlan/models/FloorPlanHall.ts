@@ -11,15 +11,18 @@ import {
 } from "three";
 import { IFloorPlanItemData, IFloorPlanItem } from "../types/prepared";
 import { IParams, TCoords } from "@/floorPlan/types/helpers";
+import { FloorPlanObjectType } from "@/floorPlan/types/floorPlan";
 
 export class FloorPlanHall extends Group {
   public data?: IFloorPlanItemData;
+  public objectType?: FloorPlanObjectType;
 
   constructor(props: IFloorPlanItem) {
     super();
     const { coords, params, data } = props;
     coords && params && this.createMesh(coords, params);
     this.data = data;
+    this.objectType = FloorPlanObjectType.Hall;
   }
 
   private createMesh(coords: TCoords[], params: IParams) {
@@ -63,4 +66,9 @@ export class FloorPlanHall extends Group {
     console.log("FloorPlanHall onClick");
     // this.material.color.setHex(Math.random() * 0xffffff);
   }
+
+  // onResize(width, height, ratio) {
+  //   this.cubeSize = (height * aspect) / 5;
+  //   this.scale.setScalar(this.cubeSize);
+  // }
 }

@@ -1,6 +1,10 @@
 import { IFloorPlanItem } from "../types/prepared";
 import { Texture } from "three";
 
+export enum FloorPlanObjectType {
+  Hall = "hall",
+}
+
 export interface IFloorPlanOptions {
   containerId: string;
   bgTexture: Texture;

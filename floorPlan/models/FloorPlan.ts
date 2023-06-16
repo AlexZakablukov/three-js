@@ -16,7 +16,11 @@ import {
 import Stats from "three/examples/jsm/libs/stats.module";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-import { IFloorPlanOptions, IContainerSizes } from "../types/floorPlan";
+import {
+  IFloorPlanOptions,
+  IContainerSizes,
+  FloorPlanObjectType,
+} from "../types/floorPlan";
 import { IFloorPlanItem } from "../types/prepared";
 import { FloorPlanHall } from "../models/FloorPlanHall";
 
@@ -177,6 +181,14 @@ export class FloorPlan {
 
   private onWindowResize() {
     const { width, height } = this.getContainerSizes();
+
+    this.camera.left = width / -2;
+    this.camera.right = width / 2;
+    this.camera.top = height / 2;
+    this.camera.bottom = height / -2;
+
+    this.centerCamera();
+
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
   }
