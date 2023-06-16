@@ -77,6 +77,7 @@ export class FloorPlan {
       const bgMaterial = new MeshBasicMaterial({ map: bgTexture });
 
       const bgMesh = new Mesh(bgGeometry, bgMaterial);
+      // move image to x and -y coordinates
       bgMesh.position.set(width / 2, -height / 2, 0);
 
       this.centerCamera(width, height);
@@ -98,11 +99,13 @@ export class FloorPlan {
   }
 
   public centerCamera(bgWidth, bgHeight) {
+    // center camera to the center of bgImage
     const center = new Vector3(bgWidth / 2, -bgHeight / 2, 0);
     this.camera.position.copy(center);
     this.camera.lookAt(center.x, center.y, center.z);
     const { width, height } = this.getContainerSizes();
 
+    // zoom to fit bgImage to 0.9 of the screen
     this.camera.zoom = Math.min(width / bgWidth, height / bgHeight) * 0.9;
 
     this.controls.target.copy(center);

@@ -17,6 +17,7 @@ export class FloorPlanHall extends Mesh {
 
   private createGeometry(coords: TCoords[]) {
     const shape = new Shape();
+    // use -y to reflect along the y-axis, because coords relative to image
     shape.moveTo(coords[0][0], -coords[0][1]);
     for (let i = 1; i < coords.length; i++) {
       shape.lineTo(coords[i][0], -coords[i][1]);
