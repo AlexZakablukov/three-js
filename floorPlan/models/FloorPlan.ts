@@ -7,6 +7,11 @@ import {
   Raycaster,
   Vector2,
   Intersection,
+  TextureLoader,
+  PlaneGeometry,
+  MeshBasicMaterial,
+  Mesh,
+  Vector3,
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
@@ -28,13 +33,16 @@ export class FloorPlan {
   private mouse: Vector2;
   //ts-ignore
   private intersects: Intersection[];
+  private textureLoader: TextureLoader;
 
-  constructor({ containerId, items }: IFloorPlanOptions) {
+  constructor({ containerId, backgroundImage, items }: IFloorPlanOptions) {
     this.initRenderer(containerId);
     this.initScene();
+    this.initTextureLoader(backgroundImage);
     this.initCamera();
     this.initStats();
     this.initControls();
+    this.centerCamera();
     this.initRayCaster();
     this.renderItems(items);
     this.animate();
@@ -59,6 +67,24 @@ export class FloorPlan {
     this.scene.background = new Color("white");
   }
 
+  private initTextureLoader(backgroundImage: string) {
+    this.textureLoader = new TextureLoader();
+    this.textureLoader.load(backgroundImage, (bgTexture) => {
+      const width = bgTexture.source.data.naturalWidth;
+      const height = bgTexture.source.data.naturalHeight;
+
+      const bgGeometry = new PlaneGeometry(width, height);
+      const bgMaterial = new MeshBasicMaterial({ map: bgTexture });
+
+      const bgMesh = new Mesh(bgGeometry, bgMaterial);
+      bgMesh.position.set(width / 2, -height / 2, 0);
+
+      this.centerCamera(width, height);
+
+      this.scene.add(bgMesh);
+    });
+  }
+
   private initCamera() {
     const { width, height } = this.getContainerSizes();
     this.camera = new OrthographicCamera(
@@ -66,9 +92,25 @@ export class FloorPlan {
       width / 2,
       height / 2,
       height / -2,
-      100,
-      -100
+      -100,
+      100
     );
+  }
+
+  public centerCamera(bgWidth, bgHeight) {
+    const center = new Vector3(bgWidth / 2, -bgHeight / 2, 0);
+    this.camera.position.copy(center);
+    this.camera.lookAt(center.x, center.y, center.z);
+    const { width, height } = this.getContainerSizes();
+
+    this.camera.zoom = Math.min(width / bgWidth, height / bgHeight) * 0.9;
+
+    this.controls.target.copy(center);
+
+    this.controls.update();
+
+    this.camera.updateProjectionMatrix();
+    this.camera.updateMatrix();
   }
 
   private initStats() {
@@ -115,6 +157,7 @@ export class FloorPlan {
 
   private renderItem(item: IFloorPlanItem) {
     const floorPlanMesh = new FloorPlanHall(item);
+    floorPlanMesh.position.setZ(1);
     this.scene.add(floorPlanMesh);
   }
 

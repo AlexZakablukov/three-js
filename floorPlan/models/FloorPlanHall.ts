@@ -17,9 +17,9 @@ export class FloorPlanHall extends Mesh {
 
   private createGeometry(coords: TCoords[]) {
     const shape = new Shape();
-    shape.moveTo(coords[0][0], coords[0][1]);
+    shape.moveTo(coords[0][0], -coords[0][1]);
     for (let i = 1; i < coords.length; i++) {
-      shape.lineTo(coords[i][0], coords[i][1]);
+      shape.lineTo(coords[i][0], -coords[i][1]);
     }
     shape.closePath();
     this.geometry = new ShapeGeometry(shape);

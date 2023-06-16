@@ -5,7 +5,7 @@ export const dataApi: IDataApi = {
     id: 61,
     name: null,
     floorPlan:
-      "https://di9mr54a05a64.cloudfront.net/api-alpha2.expoplatform.com/image/MTY2OTg5ODU1MjYzODhhMTM4ZGRlMTg=.png",
+      "https://lh3.googleusercontent.com/fife/APg5EObt6PUA4my0n3JVJ0Z1dNrgxyHwxpW4iDwBvZjxq_Ekd0uTMNK0k6ikVtZcraLP4iLKAiKZ8s-ynSzxo7nRb4LBJDb_EdRFDaZ6D104WZdMlC8R1286Kzpwq-TUqk52ThO_9-DVMM-Okab8mA8gVvA43hWslbJmCS9U7vXeASGJnOMBVBvtvgKX-zvlt5slMhh785A_mP-10FuTSt9pbzfHHf5jcAEfSj4QLZFMwoGW-KCXOPv5OYxftkoDwBF8CmTiiou9gnQGD2_cJTRXhfN6QHK27v_HLiNkX0jlQRnY9GVn7WiAJ57HnRlCgjmICg4CBiioxhcMOuWLGZY0EBoHp46XASXhrwX4mcmCQkJyy5pLvkecOLcF_rMLcogiX_WNj5ounHusvrg2Zj0Jj97GaCIA400xW4NQqWRwZSnLzf9pCXrSyOh9ROkvaT49u02ejn22QEdUFkuVEeQST4SId9FkrBHdUaXjbAoDCpzfh1_7T_KquHbuCRGNBaY0OXnsqvkjVoeDY1_OZ7YnpuAW4GMnKadIvAMF87x5jMKcq3a0DycWva0smCFJ-EsTePEfTVY46JnyBF_wjVHhiR0zmlO-NYlKMAZ81hIl4j991JTxWxConSSpezSM0unzOtF7YpuSLrTjuQZfpVI-uQwAIVWze3lNCZbTJSio9eoZTuNIV2StEanL79iFASoV2LNyiIwDnbCQByZxlCuz8O4TynsMMinslkf8Edw6xd28-qEgNTwED991rnO3Vpye9aitv58pFx0pyzrCetTmFBIsR6gLzGYX_ICFNv1FEh57BNToxJmeVEfq2zTr_6V_45xuN7H1NqgZgO_0CXXNBRi4B1FNH4wmyqcaXX0f6EU5nQqTxOxQcsO1GGT-F51hannSECsKtr68-vGLhAyF5Bx9fmNNHehqV3BPVHW9uFE6LVtoNMOPxHe8qB18LexOpU4n9W1MIrxxGaGN35aRWQGgyowUAkWTibS8kZPu5UoOs8M=w3024-h1458",
     halls: [
       {
         id: 16568,
