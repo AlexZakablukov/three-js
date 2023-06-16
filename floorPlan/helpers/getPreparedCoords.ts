@@ -12,5 +12,5 @@ export const getPreparedCoords = (
   if (parsedData === null) {
     return null;
   }
-  return parsedData.map((item) => item.map(parseFloat));
+  return parsedData.map(([x, y]) => [parseFloat(x), parseFloat(y)]);
 };

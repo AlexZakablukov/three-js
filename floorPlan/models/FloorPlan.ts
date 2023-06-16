@@ -7,11 +7,11 @@ import {
   Raycaster,
   Vector2,
   Intersection,
-  TextureLoader,
   PlaneGeometry,
   MeshBasicMaterial,
   Mesh,
   Vector3,
+  Texture,
 } from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
@@ -33,17 +33,18 @@ export class FloorPlan {
   private mouse: Vector2;
   //ts-ignore
   private intersects: Intersection[];
-  private textureLoader: TextureLoader;
+  private bgWidth: number;
+  private bgHeight: number;
 
-  constructor({ containerId, backgroundImage, items }: IFloorPlanOptions) {
+  constructor({ containerId, bgTexture, items }: IFloorPlanOptions) {
     this.initRenderer(containerId);
     this.initScene();
-    this.initTextureLoader(backgroundImage);
     this.initCamera();
-    this.initStats();
+    this.initBackground(bgTexture);
     this.initControls();
-    this.centerCamera();
     this.initRayCaster();
+    this.centerCamera();
+    this.initStats();
     this.renderItems(items);
     this.animate();
   }
@@ -67,23 +68,18 @@ export class FloorPlan {
     this.scene.background = new Color("white");
   }
 
-  private initTextureLoader(backgroundImage: string) {
-    this.textureLoader = new TextureLoader();
-    this.textureLoader.load(backgroundImage, (bgTexture) => {
-      const width = bgTexture.source.data.naturalWidth;
-      const height = bgTexture.source.data.naturalHeight;
+  private initBackground(bgTexture: Texture) {
+    this.bgWidth = bgTexture.source.data.naturalWidth;
+    this.bgHeight = bgTexture.source.data.naturalHeight;
 
-      const bgGeometry = new PlaneGeometry(width, height);
-      const bgMaterial = new MeshBasicMaterial({ map: bgTexture });
+    const bgGeometry = new PlaneGeometry(this.bgWidth, this.bgHeight);
+    const bgMaterial = new MeshBasicMaterial({ map: bgTexture });
 
-      const bgMesh = new Mesh(bgGeometry, bgMaterial);
-      // move image to x and -y coordinates
-      bgMesh.position.set(width / 2, -height / 2, 0);
+    const bgMesh = new Mesh(bgGeometry, bgMaterial);
+    // move image to x and -y coordinates
+    bgMesh.position.set(this.bgWidth / 2, -this.bgHeight / 2, 0);
 
-      this.centerCamera(width, height);
-
-      this.scene.add(bgMesh);
-    });
+    this.scene.add(bgMesh);
   }
 
   private initCamera() {
@@ -98,15 +94,16 @@ export class FloorPlan {
     );
   }
 
-  public centerCamera(bgWidth, bgHeight) {
+  public centerCamera() {
     // center camera to the center of bgImage
-    const center = new Vector3(bgWidth / 2, -bgHeight / 2, 0);
+    const center = new Vector3(this.bgWidth / 2, -this.bgHeight / 2, 0);
     this.camera.position.copy(center);
     this.camera.lookAt(center.x, center.y, center.z);
     const { width, height } = this.getContainerSizes();
 
     // zoom to fit bgImage to 0.9 of the screen
-    this.camera.zoom = Math.min(width / bgWidth, height / bgHeight) * 0.9;
+    this.camera.zoom =
+      Math.min(width / this.bgWidth, height / this.bgHeight) * 0.9;
 
     this.controls.target.copy(center);
 

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { FloorPlanThreeJs, FloorPlanEvents } from "@/lib/FloorPlanThreeJs";
 import { IFloorPlanItemData } from "@/lib/FloorPlanItem";
 import { FLOOR_PLAN_ITEMS, getRandomFloorItems } from "@/utils/floorplanItems";
+import { loadTexture } from "@/floorPlan/helpers/loadTexture";
 
 export const FloorPlan = () => {
   const [pickedItem, setPickedItem] = useState<IFloorPlanItemData | null>(null);

@@ -1,8 +1,9 @@
 import { IFloorPlanItem } from "../types/prepared";
+import { Texture } from "three";
 
 export interface IFloorPlanOptions {
   containerId: string;
-  backgroundImage: string;
+  bgTexture: Texture;
   items: IFloorPlanItem[];
 }
 
