@@ -18,7 +18,7 @@ export class FloorPlan {
   private clock: THREE.Clock;
   private controls: CameraControls;
   private raycaster: THREE.Raycaster;
-  private intersects: THREE.Intersection[];
+  private hoveredItem: FloorPlanHall | null = null;
 
   private mouse: THREE.Vector2;
   private center: THREE.Vector3;
@@ -137,6 +137,11 @@ export class FloorPlan {
       "pointermove",
       this.onPointerMove.bind(this)
     );
+
+    this.container.addEventListener(
+      "pointerleave",
+      this.onPointerLeave.bind(this)
+    );
   }
 
   public animate() {
@@ -202,7 +207,54 @@ export class FloorPlan {
     this.mouse.x = ((event.clientX - offsetLeft) / width) * 2 - 1;
     this.mouse.y = -((event.clientY - offsetTop) / height) * 2 + 1;
 
-    this.intersects = this.raycaster.intersectObjects(this.scene.children);
+    const intersects = this.raycaster.intersectObjects(this.scene.children);
+    this.intersectObjects(intersects);
+  }
+
+  private onPointerLeave() {
+    if (this.hoveredItem) {
+      this.hoveredItem.onMouseLeave();
+      this.hoveredItem = null;
+      this.render();
+      return;
+    }
+    this.render();
+  }
+
+  private intersectObjects(intersects: THREE.Intersection[]) {
+    if (!intersects.length) {
+      return;
+    }
+
+    const hoveredGroup = intersects.find(
+      (obj) => obj.object.parent instanceof FloorPlanHall
+    );
+
+    if (!hoveredGroup && this.hoveredItem) {
+      this.hoveredItem.onMouseLeave();
+      this.hoveredItem = null;
+      this.render();
+      return;
+    }
+
+    if (hoveredGroup && !this.hoveredItem) {
+      this.hoveredItem = hoveredGroup.object.parent as FloorPlanHall;
+      this.hoveredItem.onMouseEnter();
+      this.render();
+      return;
+    }
+
+    if (
+      hoveredGroup &&
+      this.hoveredItem &&
+      this.hoveredItem.uuid !== hoveredGroup.object.parent?.uuid
+    ) {
+      this.hoveredItem.onMouseLeave();
+      this.hoveredItem = hoveredGroup.object.parent as FloorPlanHall;
+      this.hoveredItem.onMouseEnter();
+      this.render();
+      return;
+    }
   }
 
   private onControlStart() {

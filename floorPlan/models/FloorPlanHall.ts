@@ -11,21 +11,24 @@ import {
 } from "three";
 import { IFloorPlanItemData, IFloorPlanItem } from "../types/prepared";
 import { IParams, TCoords } from "@/floorPlan/types/helpers";
-import { FloorPlanObjectType } from "@/floorPlan/types/floorPlan";
 
 export class FloorPlanHall extends Group {
   public data?: IFloorPlanItemData;
-  public objectType?: FloorPlanObjectType;
+  private hallShape: Mesh;
+  private hallStroke: LineSegments;
+  private initialShapeOpacity: number = 1;
 
   constructor(props: IFloorPlanItem) {
     super();
     const { coords, params, data } = props;
-    coords && params && this.createMesh(coords, params);
+    coords && params && this.createShape(coords, params);
+    this.hallShape && params && this.createStroke(params);
     this.data = data;
-    this.objectType = FloorPlanObjectType.Hall;
+    this.hallShape && this.add(this.hallShape);
+    this.hallStroke && this.add(this.hallStroke);
   }
 
-  private createMesh(coords: TCoords[], params: IParams) {
+  private createShape(coords: TCoords[], params: IParams) {
     const shape = new Shape();
     // use -y to reflect along the y-axis, because coords relative to image
     shape.moveTo(coords[0][0], -coords[0][1]);
@@ -36,34 +39,57 @@ export class FloorPlanHall extends Group {
 
     const geometry = new ShapeGeometry(shape);
 
-    const { shapeColor, strokeWidth, strokeColor } = params;
+    const { shapeColor } = params;
     const color = new Color(
       `rgb(${shapeColor?.r ?? 0}, ${shapeColor?.g ?? 0}, ${shapeColor?.b})`
     );
 
+    const opacity = shapeColor?.a ?? 1;
+
+    this.initialShapeOpacity = opacity;
+
     const material = new MeshBasicMaterial({
       color: color,
       transparent: true,
-      opacity: shapeColor?.a ?? 1,
+      opacity: opacity,
     });
 
-    const mesh = new Mesh(geometry, material);
+    this.hallShape = new Mesh(geometry, material);
+  }
 
-    const edges = new EdgesGeometry(geometry);
+  private createStroke(params: IParams) {
+    const { strokeWidth, strokeColor } = params;
+    const edges = new EdgesGeometry(this.hallShape.geometry);
     const edgesMaterial = new LineBasicMaterial({
       color: new Color(
         `rgb(${strokeColor?.r ?? 0}, ${strokeColor?.g ?? 0}, ${strokeColor?.b})`
       ),
       linewidth: strokeWidth,
     });
-    const line = new LineSegments(edges, edgesMaterial);
-
-    this.add(mesh);
-    this.add(line);
+    this.hallStroke = new LineSegments(edges, edgesMaterial);
   }
 
   public onClick(e: MouseEvent) {
     console.log("FloorPlanHall onClick");
     // this.material.color.setHex(Math.random() * 0xffffff);
+  }
+
+  public onMouseEnter() {
+    console.log("onMouseEnter", {
+      id: this.uuid,
+    });
+    // @ts-ignore
+    this.hallShape.material.opacity = Math.max(
+      this.initialShapeOpacity - 0.2,
+      0.1
+    );
+  }
+
+  public onMouseLeave() {
+    console.log("onMouseLeave", {
+      id: this.uuid,
+    });
+    // @ts-ignore
+    this.hallShape.material.opacity = this.initialShapeOpacity;
   }
 }
