@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "camera-controls": "^2.5.0",
     "dat.gui": "^0.7.9",
     "next": "13.4.5",
     "react": "18.2.0",

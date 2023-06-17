@@ -66,9 +66,4 @@ export class FloorPlanHall extends Group {
     console.log("FloorPlanHall onClick");
     // this.material.color.setHex(Math.random() * 0xffffff);
   }
-
-  // onResize(width, height, ratio) {
-  //   this.cubeSize = (height * aspect) / 5;
-  //   this.scale.setScalar(this.cubeSize);
-  // }
 }

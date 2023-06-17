@@ -1,44 +1,33 @@
-import {
-  Color,
-  MOUSE,
-  OrthographicCamera,
-  Scene,
-  WebGLRenderer,
-  Raycaster,
-  Vector2,
-  Intersection,
-  PlaneGeometry,
-  MeshBasicMaterial,
-  Mesh,
-  Vector3,
-  Texture,
-} from "three";
+import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import CameraControls from "camera-controls";
 
-import {
-  IFloorPlanOptions,
-  IContainerSizes,
-  FloorPlanObjectType,
-} from "../types/floorPlan";
+import { IFloorPlanOptions, IContainerSizes } from "../types/floorPlan";
 import { IFloorPlanItem } from "../types/prepared";
 import { FloorPlanHall } from "../models/FloorPlanHall";
+
+CameraControls.install({ THREE });
 
 export class FloorPlan {
   private container: HTMLElement;
 
-  private renderer: WebGLRenderer;
-  private scene: Scene;
-  private camera: OrthographicCamera;
+  private renderer: THREE.WebGLRenderer;
+  private scene: THREE.Scene;
+  private camera: THREE.OrthographicCamera;
 
-  private stats: Stats;
-  private controls: OrbitControls;
-  private raycaster: Raycaster;
-  private mouse: Vector2;
-  //ts-ignore
-  private intersects: Intersection[];
+  private clock: THREE.Clock;
+  private controls: CameraControls;
+  private raycaster: THREE.Raycaster;
+  private intersects: THREE.Intersection[];
+
+  private mouse: THREE.Vector2;
+  private center: THREE.Vector3;
+
+  private bgMesh: THREE.Mesh;
   private bgWidth: number;
   private bgHeight: number;
+
+  private stats: Stats;
 
   constructor({ containerId, bgTexture, items }: IFloorPlanOptions) {
     this.initRenderer(containerId);
@@ -50,6 +39,7 @@ export class FloorPlan {
     this.centerCamera();
     this.initStats();
     this.renderItems(items);
+    this.render();
     this.animate();
   }
 
@@ -60,7 +50,7 @@ export class FloorPlan {
     }
     this.container = container;
     const { width, height } = this.getContainerSizes();
-    this.renderer = new WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(width, height);
     this.container.appendChild(this.renderer.domElement);
 
@@ -68,53 +58,46 @@ export class FloorPlan {
   }
 
   private initScene() {
-    this.scene = new Scene();
-    this.scene.background = new Color("white");
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color("white");
   }
 
-  private initBackground(bgTexture: Texture) {
+  private initBackground(bgTexture: THREE.Texture) {
     this.bgWidth = bgTexture.source.data.naturalWidth;
     this.bgHeight = bgTexture.source.data.naturalHeight;
 
-    const bgGeometry = new PlaneGeometry(this.bgWidth, this.bgHeight);
-    const bgMaterial = new MeshBasicMaterial({ map: bgTexture });
+    this.center = new THREE.Vector3(this.bgWidth / 2, -this.bgHeight / 2, 0);
 
-    const bgMesh = new Mesh(bgGeometry, bgMaterial);
+    const bgGeometry = new THREE.PlaneGeometry(this.bgWidth, this.bgHeight);
+    const bgMaterial = new THREE.MeshBasicMaterial({ map: bgTexture });
+
+    this.bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
     // move image to x and -y coordinates
-    bgMesh.position.set(this.bgWidth / 2, -this.bgHeight / 2, 0);
+    this.bgMesh.position.set(this.bgWidth / 2, -this.bgHeight / 2, 0);
 
-    this.scene.add(bgMesh);
+    this.scene.add(this.bgMesh);
   }
 
   private initCamera() {
     const { width, height } = this.getContainerSizes();
-    this.camera = new OrthographicCamera(
+    this.camera = new THREE.OrthographicCamera(
       width / -2,
       width / 2,
       height / 2,
       height / -2,
-      -100,
-      100
+      0,
+      10
     );
+    this.camera.position.set(0, 0, 5);
   }
 
-  public centerCamera() {
-    // center camera to the center of bgImage
-    const center = new Vector3(this.bgWidth / 2, -this.bgHeight / 2, 0);
-    this.camera.position.copy(center);
-    this.camera.lookAt(center.x, center.y, center.z);
-    const { width, height } = this.getContainerSizes();
-
-    // zoom to fit bgImage to 0.9 of the screen
-    this.camera.zoom =
-      Math.min(width / this.bgWidth, height / this.bgHeight) * 0.9;
-
-    this.controls.target.copy(center);
-
-    this.controls.update();
-
-    this.camera.updateProjectionMatrix();
-    this.camera.updateMatrix();
+  public centerCamera(enableTransition: boolean = false) {
+    this.controls.fitToBox(this.bgMesh, enableTransition, {
+      paddingTop: 50,
+      paddingBottom: 50,
+      paddingLeft: 50,
+      paddingRight: 50,
+    });
   }
 
   private initStats() {
@@ -125,16 +108,30 @@ export class FloorPlan {
   }
 
   private initControls() {
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.enableRotate = false;
-    this.controls.enablePan = true;
-    this.controls.mouseButtons.LEFT = MOUSE.PAN;
-    this.controls.mouseButtons.RIGHT = MOUSE.DOLLY;
+    this.clock = new THREE.Clock();
+    this.controls = new CameraControls(this.camera, this.renderer.domElement);
+    this.controls.truckSpeed = 3;
+    this.controls.dollyToCursor = true;
+    this.controls.dollySpeed = 0.5;
+    this.controls.mouseButtons.left = CameraControls.ACTION.TRUCK;
+    this.controls.mouseButtons.right = CameraControls.ACTION.NONE;
+
+    const { width, height } = this.getContainerSizes();
+    // calculate minZoom to contain bgImage and also increase a bit by * 0.7
+    this.controls.minZoom =
+      Math.min(width / this.bgWidth, height / this.bgHeight) * 0.7;
+    this.controls.maxZoom = 3;
+
+    this.controls.addEventListener(
+      "controlstart",
+      this.onControlStart.bind(this)
+    );
+    this.controls.addEventListener("controlend", this.onControlEnd.bind(this));
   }
 
   private initRayCaster() {
-    this.raycaster = new Raycaster();
-    this.mouse = new Vector2();
+    this.raycaster = new THREE.Raycaster();
+    this.mouse = new THREE.Vector2();
 
     this.container.addEventListener(
       "pointermove",
@@ -143,20 +140,26 @@ export class FloorPlan {
   }
 
   public animate() {
+    const delta = this.clock.getDelta();
+    const hasControlsUpdated = this.controls.update(delta);
+    this.stats && this.stats.update();
+    this.raycaster && this.raycaster.setFromCamera(this.mouse, this.camera);
+
     window.requestAnimationFrame(this.animate.bind(this));
-    this.render();
+
+    if (hasControlsUpdated) {
+      this.render();
+    }
   }
 
   public render() {
     this.renderer.render(this.scene, this.camera);
-    this.stats && this.stats.update();
-    this.controls && this.controls.update();
-    this.raycaster && this.raycaster.setFromCamera(this.mouse, this.camera);
   }
 
   public destroy() {
     // TODO: remove all event listeners
     console.log("destroyed");
+    this.controls.disconnect();
   }
 
   private renderItem(item: IFloorPlanItem) {
@@ -200,5 +203,23 @@ export class FloorPlan {
     this.mouse.y = -((event.clientY - offsetTop) / height) * 2 + 1;
 
     this.intersects = this.raycaster.intersectObjects(this.scene.children);
+  }
+
+  private onControlStart() {
+    switch (this.controls.currentAction) {
+      case CameraControls.ACTION.TRUCK:
+      case CameraControls.ACTION.TOUCH_TRUCK: {
+        this.renderer.domElement.style.setProperty("cursor", "grabbing");
+        break;
+      }
+
+      default: {
+        break;
+      }
+    }
+  }
+
+  private onControlEnd() {
+    this.renderer.domElement.style.setProperty("cursor", "initial");
   }
 }
