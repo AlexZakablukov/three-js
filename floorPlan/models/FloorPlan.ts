@@ -142,6 +142,8 @@ export class FloorPlan {
       "pointerleave",
       this.onPointerLeave.bind(this)
     );
+
+    this.container.addEventListener("click", this.onClick.bind(this));
   }
 
   public animate() {
@@ -221,7 +223,21 @@ export class FloorPlan {
     this.render();
   }
 
+  private onClick() {
+    if (this.hoveredItem) {
+      this.hoveredItem.onClick();
+      this.render();
+    }
+  }
+
   private intersectObjects(intersects: THREE.Intersection[]) {
+    if (!intersects.length && this.hoveredItem) {
+      this.hoveredItem.onMouseLeave();
+      this.hoveredItem = null;
+      this.render();
+      return;
+    }
+
     if (!intersects.length) {
       return;
     }
@@ -258,6 +274,9 @@ export class FloorPlan {
   }
 
   private onControlStart() {
+    if (this.hoveredItem) {
+      return;
+    }
     switch (this.controls.currentAction) {
       case CameraControls.ACTION.TRUCK:
       case CameraControls.ACTION.TOUCH_TRUCK: {

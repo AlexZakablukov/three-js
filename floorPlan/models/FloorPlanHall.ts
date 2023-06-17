@@ -69,15 +69,12 @@ export class FloorPlanHall extends Group {
     this.hallStroke = new LineSegments(edges, edgesMaterial);
   }
 
-  public onClick(e: MouseEvent) {
-    console.log("FloorPlanHall onClick");
-    // this.material.color.setHex(Math.random() * 0xffffff);
+  public onClick() {
+    // @ts-ignore
+    this.hallShape.material.color.setHex(Math.random() * 0xffffff);
   }
 
   public onMouseEnter() {
-    console.log("onMouseEnter", {
-      id: this.uuid,
-    });
     // @ts-ignore
     this.hallShape.material.opacity = Math.max(
       this.initialShapeOpacity - 0.2,
@@ -86,9 +83,6 @@ export class FloorPlanHall extends Group {
   }
 
   public onMouseLeave() {
-    console.log("onMouseLeave", {
-      id: this.uuid,
-    });
     // @ts-ignore
     this.hallShape.material.opacity = this.initialShapeOpacity;
   }
