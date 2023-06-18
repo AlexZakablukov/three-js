@@ -1,55 +1,48 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FloorPlan } from "@/floorPlan/models/FloorPlan";
 import { getPreparedFloorPlanData } from "@/floorPlan/helpers";
 import { dataApi } from "@/floorPlan/mock/data";
-import { loadTexture } from "@/floorPlan/helpers/loadTexture";
-import { Texture } from "three";
-import { texture } from "three/examples/jsm/nodes/shadernode/ShaderNodeBaseElements";
 import { Spinner } from "@/components/Spinner";
+import { useLoadFont, useLoadTexture } from "@/floorPlan/hooks";
+
+const fontUrl = "/fonts/helvetiker_regular.typeface.json";
 
 export const ExpoFloorPlan = () => {
-  const [bgTexture, setBgTexture] = useState<Texture | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
   const { backgroundImage, items } = getPreparedFloorPlanData(dataApi);
-
-  const loadBackgroundTexture = useCallback(async () => {
-    setLoading(true);
-    try {
-      const texture = await loadTexture(backgroundImage);
-      setBgTexture(texture);
-    } catch (err: any) {
-      setError("Texture can not be loaded");
-    } finally {
-      setLoading(false);
-    }
-  }, [backgroundImage]);
+  const {
+    texture,
+    loading: textureLoading,
+    error: textureError,
+  } = useLoadTexture(backgroundImage);
+  const { font, loading: fontLoading, error: fontError } = useLoadFont(fontUrl);
 
   useEffect(() => {
-    loadBackgroundTexture().catch((e) => console.log(e));
-  }, [loadBackgroundTexture]);
-
-  useEffect(() => {
-    if (!bgTexture) {
+    if (!texture || !font) {
       return;
     }
     const floorPlan = new FloorPlan({
       containerId: "floorPlan",
-      bgTexture: bgTexture,
+      bgTexture: texture,
+      font: font,
       items: items,
     });
     return () => {
       floorPlan.destroy();
     };
-  }, [bgTexture, items]);
+  }, [texture, font, items]);
 
-  if (loading) {
+  if (textureLoading || fontLoading) {
     return <Spinner />;
   }
 
-  if (error) {
-    return <div>{error}</div>;
+  if (textureError || fontError) {
+    return (
+      <div className="text-red-500">
+        {textureError}
+        {fontError}
+      </div>
+    );
   }
 
   return (

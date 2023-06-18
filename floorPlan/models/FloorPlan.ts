@@ -5,6 +5,7 @@ import CameraControls from "camera-controls";
 import { IFloorPlanOptions, IContainerSizes } from "../types/floorPlan";
 import { IFloorPlanItem } from "../types/prepared";
 import { FloorPlanHall } from "../models/FloorPlanHall";
+import { Font } from "three/examples/jsm/loaders/FontLoader";
 
 CameraControls.install({ THREE });
 
@@ -29,7 +30,7 @@ export class FloorPlan {
 
   private stats: Stats;
 
-  constructor({ containerId, bgTexture, items }: IFloorPlanOptions) {
+  constructor({ containerId, bgTexture, font, items }: IFloorPlanOptions) {
     this.initRenderer(containerId);
     this.initScene();
     this.initCamera();
@@ -38,7 +39,7 @@ export class FloorPlan {
     this.initRayCaster();
     this.centerCamera();
     this.initStats();
-    this.renderItems(items);
+    this.renderItems(items, font);
     this.render();
     this.animate();
   }
@@ -112,7 +113,7 @@ export class FloorPlan {
     this.controls = new CameraControls(this.camera, this.renderer.domElement);
     this.controls.truckSpeed = 3;
     this.controls.dollyToCursor = true;
-    this.controls.dollySpeed = 0.5;
+    this.controls.dollySpeed = 3;
     this.controls.mouseButtons.left = CameraControls.ACTION.TRUCK;
     this.controls.mouseButtons.right = CameraControls.ACTION.NONE;
 
@@ -169,14 +170,14 @@ export class FloorPlan {
     this.controls.disconnect();
   }
 
-  private renderItem(item: IFloorPlanItem) {
-    const floorPlanMesh = new FloorPlanHall(item);
+  private renderItem(item: IFloorPlanItem, font: Font) {
+    const floorPlanMesh = new FloorPlanHall(item, font);
     floorPlanMesh.position.setZ(1);
     this.scene.add(floorPlanMesh);
   }
 
-  private renderItems(items: IFloorPlanItem[]) {
-    items.forEach((item) => this.renderItem(item));
+  private renderItems(items: IFloorPlanItem[], font: Font) {
+    items.forEach((item) => this.renderItem(item, font));
   }
 
   private getContainerSizes(): IContainerSizes {

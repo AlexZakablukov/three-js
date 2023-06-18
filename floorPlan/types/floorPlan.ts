@@ -1,5 +1,6 @@
 import { IFloorPlanItem } from "../types/prepared";
 import { Texture } from "three";
+import { Font } from "three/examples/jsm/loaders/FontLoader";
 
 export enum FloorPlanObjectType {
   Hall = "hall",
@@ -8,6 +9,7 @@ export enum FloorPlanObjectType {
 export interface IFloorPlanOptions {
   containerId: string;
   bgTexture: Texture;
+  font: Font;
   items: IFloorPlanItem[];
 }
 
