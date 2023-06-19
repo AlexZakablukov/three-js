@@ -43,7 +43,7 @@ export const HallFloorPlan: FC<IHallFloorPlanProps> = ({ id }) => {
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div id="floorPlan" className="w-full h-[calc(100vh-3rem)] relative" />
+      <div id="floorPlan" className="w-full relative floorPlan-height" />
     </div>
   );
 };
