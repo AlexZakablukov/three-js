@@ -11,25 +11,28 @@ import {
 } from "three";
 import { IFloorPlanItemData, IFloorPlanItem } from "../types/prepared";
 import { IParams, TCoords } from "@/floorPlan/types/helpers";
-import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
-import { Font } from "three/examples/jsm/loaders/FontLoader";
+import { getBoundingBox } from "@/floorPlan/helpers/getBoundingBox";
+import { Text } from "troika-three-text";
+import { ITextOptions } from "@/floorPlan/types/floorPlan";
 
 export class FloorPlanHall extends Group {
   public data?: IFloorPlanItemData;
   private hallShape: Mesh<ShapeGeometry, MeshBasicMaterial>;
   private hallStroke: LineSegments;
-  private hallLabel: Mesh<TextGeometry, MeshBasicMaterial>;
+  private hallLabel: Text;
   private initialShapeOpacity: number = 1;
 
-  constructor(items: IFloorPlanItem, font: Font) {
+  constructor(items: IFloorPlanItem, textOptions: ITextOptions) {
     super();
     const { coords, params, data } = items;
     coords && params && this.createShape(coords, params);
     this.hallShape && params && this.createStroke(params);
-    this.hallShape && coords && this.createLabel(data.title, font);
+    this.hallShape && coords && this.createLabel(data.title, textOptions);
     this.data = data;
     this.hallShape && this.add(this.hallShape);
     this.hallStroke && this.add(this.hallStroke);
+    //@ts-ignore
+    this.hallLabel && this.add(this.hallLabel);
   }
 
   private createShape(coords: TCoords[], params: IParams) {
@@ -59,6 +62,7 @@ export class FloorPlanHall extends Group {
     });
 
     this.hallShape = new Mesh(geometry, material);
+    this.hallShape.position.z = 1;
   }
 
   private createStroke(params: IParams) {
@@ -71,63 +75,29 @@ export class FloorPlanHall extends Group {
       linewidth: strokeWidth,
     });
     this.hallStroke = new LineSegments(edges, edgesMaterial);
+    this.hallStroke.position.z = 1;
   }
 
-  private createLabel(text: string, font: Font) {
-    this.hallShape.geometry.computeBoundingBox();
+  private createLabel(text: string, options: ITextOptions) {
+    const shapeBoundingBox = getBoundingBox(this.hallShape.geometry);
 
-    const boundingBox = this.hallShape.geometry.boundingBox;
+    const label = new Text();
+    label.text = text;
+    label.color = "black";
+    label.fontSize = 10;
+    label.textAlign = "center";
+    label.anchorX = "center";
+    label.anchorY = "middle";
+    label.position.x = shapeBoundingBox.centerX;
+    label.position.y = shapeBoundingBox.centerY;
+    label.position.z = 3;
+    label.maxWidth = shapeBoundingBox.width - 30;
 
-    const maxX = boundingBox?.max.x ?? 0;
-    const minX = boundingBox?.min.x ?? 0;
-    const maxY = boundingBox?.max.y ?? 0;
-    const minY = boundingBox?.min.y ?? 0;
-
-    const centerX = (maxX + minX) / 2;
-    const centerY = (maxY + minY) / 2;
-    const width = maxX - minX;
-    const height = maxY - minY;
-
-    console.log("Bounding Box:", {
-      centerX,
-      centerY,
-      width,
-      height,
+    label.sync(() => {
+      options.onSync();
     });
 
-    const fontFace = "helvetiker";
-    const fontSize = 10;
-
-    const textMaterial = new MeshBasicMaterial({ color: 0x000000 });
-
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    context.font = `${fontSize}px ${fontFace}`;
-
-    const textWidth = context.measureText(text).width;
-    const textHeight = fontSize;
-
-    const scale = Math.min(width / textWidth, height / textHeight, 1);
-
-    console.log("scale", scale);
-
-    console.log("scale");
-
-    const textGeometry = new TextGeometry(text, {
-      font: font,
-      size: fontSize * scale,
-      height: 0,
-      curveSegments: 12,
-      bevelEnabled: false,
-    });
-
-    const textMesh = new Mesh(textGeometry, textMaterial);
-
-    textMesh.position.x = centerX - textWidth;
-    textMesh.position.y = centerY - textHeight;
-    textMesh.position.z = 2;
-
-    this.add(textMesh);
+    this.hallLabel = label;
   }
 
   public onClick() {

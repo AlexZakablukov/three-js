@@ -2,10 +2,15 @@ import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 import CameraControls from "camera-controls";
 
-import { IFloorPlanOptions, IContainerSizes } from "../types/floorPlan";
+import {
+  IFloorPlanOptions,
+  IContainerSizes,
+  ITextOptions,
+} from "../types/floorPlan";
 import { IFloorPlanItem } from "../types/prepared";
 import { FloorPlanHall } from "../models/FloorPlanHall";
 import { Font } from "three/examples/jsm/loaders/FontLoader";
+import { Text } from "troika-three-text";
 
 CameraControls.install({ THREE });
 
@@ -31,7 +36,10 @@ export class FloorPlan {
   private stats: Stats;
 
   constructor({ containerId, bgTexture, font, items }: IFloorPlanOptions) {
-    this.initRenderer(containerId);
+    const container = this.initRenderer(containerId);
+    if (!container) {
+      return;
+    }
     this.initScene();
     this.initCamera();
     this.initBackground(bgTexture);
@@ -56,6 +64,7 @@ export class FloorPlan {
     this.container.appendChild(this.renderer.domElement);
 
     window.addEventListener("resize", () => this.onWindowResize(), false);
+    return container;
   }
 
   private initScene() {
@@ -113,14 +122,14 @@ export class FloorPlan {
     this.controls = new CameraControls(this.camera, this.renderer.domElement);
     this.controls.truckSpeed = 3;
     this.controls.dollyToCursor = true;
-    this.controls.dollySpeed = 3;
+    this.controls.dollySpeed = 0.5;
     this.controls.mouseButtons.left = CameraControls.ACTION.TRUCK;
-    this.controls.mouseButtons.right = CameraControls.ACTION.NONE;
+    this.controls.mouseButtons.right = CameraControls.ACTION.ZOOM;
 
     const { width, height } = this.getContainerSizes();
     // calculate minZoom to contain bgImage and also increase a bit by * 0.7
-    this.controls.minZoom =
-      Math.min(width / this.bgWidth, height / this.bgHeight) * 0.7;
+    // this.controls.minZoom =
+    //   Math.min(width / this.bgWidth, height / this.bgHeight) * 0.9;
     this.controls.maxZoom = 3;
 
     this.controls.addEventListener(
@@ -170,14 +179,17 @@ export class FloorPlan {
     this.controls.disconnect();
   }
 
-  private renderItem(item: IFloorPlanItem, font: Font) {
-    const floorPlanMesh = new FloorPlanHall(item, font);
-    floorPlanMesh.position.setZ(1);
+  private renderItem(item: IFloorPlanItem, textOptions: ITextOptions) {
+    const floorPlanMesh = new FloorPlanHall(item, textOptions);
     this.scene.add(floorPlanMesh);
   }
 
   private renderItems(items: IFloorPlanItem[], font: Font) {
-    items.forEach((item) => this.renderItem(item, font));
+    const textOptions = {
+      font,
+      onSync: this.render.bind(this),
+    };
+    items.forEach((item) => this.renderItem(item, textOptions));
   }
 
   private getContainerSizes(): IContainerSizes {

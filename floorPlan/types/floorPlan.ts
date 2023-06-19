@@ -20,3 +20,8 @@ export interface IContainerSizes {
   offsetLeft: number;
   offsetTop: number;
 }
+
+export interface ITextOptions {
+  font: Font;
+  onSync: () => void;
+}
