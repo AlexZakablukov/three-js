@@ -1,6 +1,6 @@
-import { IDataApi } from "../types/api";
+import { IPlaceDataApi } from "../types/api";
 
-export const dataApi: IDataApi = {
+export const placeDataApi: IPlaceDataApi = {
   place: {
     id: 61,
     name: null,

@@ -5,16 +5,14 @@ import CameraControls from "camera-controls";
 import {
   IFloorPlanOptions,
   IContainerSizes,
-  ITextOptions,
+  IFloorPlanItemOptions,
 } from "../types/floorPlan";
 import { IFloorPlanItem } from "../types/prepared";
-import { FloorPlanHall } from "../models/FloorPlanHall";
-import { Font } from "three/examples/jsm/loaders/FontLoader";
-import { Text } from "troika-three-text";
+import { FloorPlanItem } from "./FloorPlanItem";
 
 CameraControls.install({ THREE });
 
-export class FloorPlan {
+export class FloorPlanThreeJs {
   private container: HTMLElement;
 
   private renderer: THREE.WebGLRenderer;
@@ -24,7 +22,7 @@ export class FloorPlan {
   private clock: THREE.Clock;
   private controls: CameraControls;
   private raycaster: THREE.Raycaster;
-  private hoveredItem: FloorPlanHall | null = null;
+  private hoveredItem: FloorPlanItem | null = null;
 
   private mouse: THREE.Vector2;
   private center: THREE.Vector3;
@@ -35,19 +33,28 @@ export class FloorPlan {
 
   private stats: Stats;
 
-  constructor({ containerId, bgTexture, font, items }: IFloorPlanOptions) {
+  constructor({
+    containerId,
+    bgTexture,
+    bgColor,
+    items,
+    events,
+  }: IFloorPlanOptions) {
     const container = this.initRenderer(containerId);
     if (!container) {
       return;
     }
-    this.initScene();
+    this.initScene(bgColor);
     this.initCamera();
     this.initBackground(bgTexture);
     this.initControls();
     this.initRayCaster();
     this.centerCamera();
     this.initStats();
-    this.renderItems(items, font);
+    this.renderItems(items, {
+      events: events?.item,
+      onTextSync: this.render.bind(this),
+    });
     this.render();
     this.animate();
   }
@@ -67,9 +74,9 @@ export class FloorPlan {
     return container;
   }
 
-  private initScene() {
+  private initScene(bgColor: string = "white") {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color("white");
+    this.scene.background = new THREE.Color(bgColor);
   }
 
   private initBackground(bgTexture: THREE.Texture) {
@@ -126,7 +133,7 @@ export class FloorPlan {
     this.controls.mouseButtons.left = CameraControls.ACTION.TRUCK;
     this.controls.mouseButtons.right = CameraControls.ACTION.ZOOM;
 
-    const { width, height } = this.getContainerSizes();
+    // const { width, height } = this.getContainerSizes();
     // calculate minZoom to contain bgImage and also increase a bit by * 0.7
     // this.controls.minZoom =
     //   Math.min(width / this.bgWidth, height / this.bgHeight) * 0.9;
@@ -179,17 +186,11 @@ export class FloorPlan {
     this.controls.disconnect();
   }
 
-  private renderItem(item: IFloorPlanItem, textOptions: ITextOptions) {
-    const floorPlanMesh = new FloorPlanHall(item, textOptions);
-    this.scene.add(floorPlanMesh);
-  }
-
-  private renderItems(items: IFloorPlanItem[], font: Font) {
-    const textOptions = {
-      font,
-      onSync: this.render.bind(this),
-    };
-    items.forEach((item) => this.renderItem(item, textOptions));
+  private renderItems(items: IFloorPlanItem[], options: IFloorPlanItemOptions) {
+    items.forEach((item) => {
+      const floorPlanMesh = new FloorPlanItem(item, options);
+      this.scene.add(floorPlanMesh);
+    });
   }
 
   private getContainerSizes(): IContainerSizes {
@@ -256,7 +257,7 @@ export class FloorPlan {
     }
 
     const hoveredGroup = intersects.find(
-      (obj) => obj.object.parent instanceof FloorPlanHall
+      (obj) => obj.object.parent instanceof FloorPlanItem
     );
 
     if (!hoveredGroup && this.hoveredItem) {
@@ -267,7 +268,7 @@ export class FloorPlan {
     }
 
     if (hoveredGroup && !this.hoveredItem) {
-      this.hoveredItem = hoveredGroup.object.parent as FloorPlanHall;
+      this.hoveredItem = hoveredGroup.object.parent as FloorPlanItem;
       this.hoveredItem.onMouseEnter();
       this.render();
       return;
@@ -279,7 +280,7 @@ export class FloorPlan {
       this.hoveredItem.uuid !== hoveredGroup.object.parent?.uuid
     ) {
       this.hoveredItem.onMouseLeave();
-      this.hoveredItem = hoveredGroup.object.parent as FloorPlanHall;
+      this.hoveredItem = hoveredGroup.object.parent as FloorPlanItem;
       this.hoveredItem.onMouseEnter();
       this.render();
       return;

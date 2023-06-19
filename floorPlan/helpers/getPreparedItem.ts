@@ -1,9 +1,9 @@
 import { getPreparedCoords } from "./getPreparedCoords";
 import { getPreparedParams } from "./getPreparedParams";
-import { IHallApi } from "../types/api";
 import { IFloorPlanItem } from "../types/prepared";
+import { IItemToBePrepared } from "@/floorPlan/types/helpers";
 
-export const getPreparedFloorPlanHall = (item: IHallApi): IFloorPlanItem => {
+export const getPreparedItem = (item: IItemToBePrepared): IFloorPlanItem => {
   return {
     coords: getPreparedCoords(item.coords),
     params: getPreparedParams(item.params),

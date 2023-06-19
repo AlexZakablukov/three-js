@@ -13,26 +13,26 @@ import { IFloorPlanItemData, IFloorPlanItem } from "../types/prepared";
 import { IParams, TCoords } from "@/floorPlan/types/helpers";
 import { getBoundingBox } from "@/floorPlan/helpers/getBoundingBox";
 import { Text } from "troika-three-text";
-import { ITextOptions } from "@/floorPlan/types/floorPlan";
+import {
+  IFloorPlanItemEvents,
+  IFloorPlanItemOptions,
+} from "@/floorPlan/types/floorPlan";
 
-export class FloorPlanHall extends Group {
-  public data?: IFloorPlanItemData;
+export class FloorPlanItem extends Group {
+  public data: IFloorPlanItemData;
   private hallShape: Mesh<ShapeGeometry, MeshBasicMaterial>;
   private hallStroke: LineSegments;
   private hallLabel: Text;
   private initialShapeOpacity: number = 1;
+  private events?: IFloorPlanItemEvents;
 
-  constructor(items: IFloorPlanItem, textOptions: ITextOptions) {
+  constructor(items: IFloorPlanItem, options: IFloorPlanItemOptions) {
     super();
     const { coords, params, data } = items;
     coords && params && this.createShape(coords, params);
     this.hallShape && params && this.createStroke(params);
-    this.hallShape && coords && this.createLabel(data.title, textOptions);
     this.data = data;
-    this.hallShape && this.add(this.hallShape);
-    this.hallStroke && this.add(this.hallStroke);
-    //@ts-ignore
-    this.hallLabel && this.add(this.hallLabel);
+    this.events = options.events;
   }
 
   private createShape(coords: TCoords[], params: IParams) {
@@ -46,12 +46,12 @@ export class FloorPlanHall extends Group {
 
     const geometry = new ShapeGeometry(shape);
 
-    const { shapeColor } = params;
+    const { bgColor } = params;
     const color = new Color(
-      `rgb(${shapeColor?.r ?? 0}, ${shapeColor?.g ?? 0}, ${shapeColor?.b})`
+      `rgb(${bgColor?.r ?? 0}, ${bgColor?.g ?? 0}, ${bgColor?.b})`
     );
 
-    const opacity = shapeColor?.a ?? 1;
+    const opacity = bgColor?.a ?? 1;
 
     this.initialShapeOpacity = opacity;
 
@@ -63,6 +63,7 @@ export class FloorPlanHall extends Group {
 
     this.hallShape = new Mesh(geometry, material);
     this.hallShape.position.z = 1;
+    this.add(this.hallShape);
   }
 
   private createStroke(params: IParams) {
@@ -78,7 +79,7 @@ export class FloorPlanHall extends Group {
     this.hallStroke.position.z = 1;
   }
 
-  private createLabel(text: string, options: ITextOptions) {
+  private createLabel(text: string, onSync?: () => void) {
     const shapeBoundingBox = getBoundingBox(this.hallShape.geometry);
 
     const label = new Text();
@@ -93,15 +94,14 @@ export class FloorPlanHall extends Group {
     label.position.z = 3;
     label.maxWidth = shapeBoundingBox.width - 30;
 
-    label.sync(() => {
-      options.onSync();
-    });
+    onSync && label.sync(onSync);
 
     this.hallLabel = label;
   }
 
   public onClick() {
     this.hallShape.material.color.setHex(Math.random() * 0xffffff);
+    this.events?.onItemClick && this.events.onItemClick(this.data);
   }
 
   public onMouseEnter() {
@@ -109,9 +109,11 @@ export class FloorPlanHall extends Group {
       this.initialShapeOpacity - 0.2,
       0.1
     );
+    this.events?.onItemEnter && this.events.onItemEnter(this.data);
   }
 
   public onMouseLeave() {
     this.hallShape.material.opacity = this.initialShapeOpacity;
+    this.events?.onItemLeave && this.events.onItemLeave(this.data);
   }
 }

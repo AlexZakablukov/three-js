@@ -13,11 +13,18 @@ export interface IColor {
 }
 
 export interface IParams {
-  width: number;
-  height: number;
-  drawingTool: DrawingTools;
-  hideStand: boolean;
-  shapeColor: IColor | null;
-  strokeColor: IColor | null;
-  strokeWidth: number;
+  width?: number;
+  height?: number;
+  drawingTool?: DrawingTools;
+  hideStand?: boolean;
+  bgColor?: IColor | null;
+  strokeColor?: IColor | null;
+  strokeWidth?: number;
+}
+
+export interface IItemToBePrepared {
+  id: number;
+  name: string;
+  coords: string | null;
+  params: string | null;
 }

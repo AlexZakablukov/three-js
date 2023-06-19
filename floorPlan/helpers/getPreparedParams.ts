@@ -1,5 +1,6 @@
 import { DrawingTools, IParams } from "../types/helpers";
 import { parseJson } from "./parseJson";
+import { getRgbaFromHex } from "./getRgbaFromHex";
 
 export const getPreparedParams = (
   paramsString: string | null
@@ -7,7 +8,7 @@ export const getPreparedParams = (
   if (paramsString === null) {
     return null;
   }
-  const parsedData: Record<keyof IParams, string> | null = parseJson(
+  const parsedData: Record<string, string> | null = parseJson(
     paramsString,
     null
   );
@@ -16,13 +17,44 @@ export const getPreparedParams = (
     return null;
   }
 
-  return {
-    width: Number(parsedData.width),
-    height: Number(parsedData.height),
-    drawingTool: parsedData.drawingTool as DrawingTools,
-    hideStand: parsedData.hideStand === "true",
-    shapeColor: parseJson(parsedData.shapeColor, null),
-    strokeColor: parseJson(parsedData.strokeColor, null),
-    strokeWidth: Number(parsedData.strokeWidth),
-  };
+  const result: IParams = {};
+
+  if (parsedData.width) {
+    result.width = Number(parsedData.width);
+  }
+
+  if (parsedData.height) {
+    result.height = Number(parsedData.height);
+  }
+
+  if (parsedData.drawingTool) {
+    result.drawingTool = parsedData.drawingTool as DrawingTools;
+  }
+
+  if (parsedData.hideStand) {
+    result.hideStand = parsedData.hideStand === "true";
+  }
+
+  if (parsedData.shapeColor) {
+    result.bgColor = parseJson(parsedData.shapeColor, null);
+  }
+
+  if (parsedData.fillColor) {
+    result.bgColor = getRgbaFromHex(parsedData.fillColor);
+  }
+
+  if (parsedData.strokeColor) {
+    const strokeColor = parseJson(parsedData.strokeColor, null);
+    if (strokeColor) {
+      result.strokeColor = strokeColor;
+    } else {
+      result.strokeColor = getRgbaFromHex(parsedData.strokeColor);
+    }
+  }
+
+  if (parsedData.strokeWidth) {
+    result.strokeWidth = Number(parsedData.strokeWidth);
+  }
+
+  return result;
 };

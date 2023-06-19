@@ -13,6 +13,6 @@ export interface IFloorPlanItem {
 
 export interface IFloorPlanData {
   id: number;
-  backgroundImage: string;
+  backgroundImage: string | null;
   items: IFloorPlanItem[];
 }
