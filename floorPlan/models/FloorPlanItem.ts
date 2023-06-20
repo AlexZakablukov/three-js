@@ -1,28 +1,26 @@
 import {
+  Color,
+  EdgesGeometry,
+  Group,
+  LineBasicMaterial,
+  LineSegments,
   Mesh,
   MeshBasicMaterial,
-  Color,
+  PlaneGeometry,
   Shape,
   ShapeGeometry,
-  Group,
-  EdgesGeometry,
-  LineSegments,
-  LineBasicMaterial,
-  Texture,
-  PlaneGeometry,
-  DoubleSide,
-  SpriteMaterial,
-  Sprite,
+  Box3,
 } from "three";
-import { IFloorPlanItemData, IFloorPlanItem } from "../types/prepared";
-import { IParams, TCoords } from "@/floorPlan/types/helpers";
-import { getBoundingBox } from "@/floorPlan/helpers/getBoundingBox";
+import { IFloorPlanItem, IFloorPlanItemData } from "../types/prepared";
+import { DrawingTools, IParams, TCoords } from "@/floorPlan/types/helpers";
 import { IFloorPlanItemOptions } from "@/floorPlan/types/floorPlan";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
+import { getBoundingBox } from "@/floorPlan/helpers/getBoundingBox";
+import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 
 export class FloorPlanItem extends Group {
   public data: IFloorPlanItemData;
-  private hallShape: Mesh<ShapeGeometry, MeshBasicMaterial>;
+  private hallShape: Mesh<ShapeGeometry | PlaneGeometry, MeshBasicMaterial>;
   private hallStroke: LineSegments;
   private hallLabel: Mesh<TextGeometry, MeshBasicMaterial>;
   private initialShapeOpacity: number = 1;
@@ -33,9 +31,38 @@ export class FloorPlanItem extends Group {
     const { coords, params, data } = items;
     this.data = data;
     this.options = options;
+    // if (coords && params && params.drawingTool === DrawingTools.Polygon) {
+    //   this.createShape(coords, params);
+    // } else if (coords && params) {
+    //   this.createRect(coords, params);
+    // }
     coords && params && this.createShape(coords, params);
     this.hallShape && params && this.createStroke(params);
     this.hallShape && this.createLabel(data.title);
+  }
+
+  private createRect(coords: TCoords[], params: IParams) {
+    const { bgColor } = params;
+    const width = coords[1][0] - coords[0][0];
+    const height = coords[2][1] - coords[0][1];
+
+    const geometry = new PlaneGeometry(width, height);
+
+    const opacity = bgColor?.a ?? 1;
+
+    const material = new MeshBasicMaterial({
+      color: new Color(
+        `rgb(${bgColor?.r ?? 0}, ${bgColor?.g ?? 0}, ${bgColor?.b})`
+      ),
+      transparent: true,
+      opacity,
+    });
+
+    this.hallShape = new Mesh(geometry, material);
+    this.hallShape.position.x = coords[0][0] + width / 2;
+    this.hallShape.position.y = -coords[0][1] - height / 2;
+    this.hallShape.position.z = 1;
+    this.add(this.hallShape);
   }
 
   private createShape(coords: TCoords[], params: IParams) {
@@ -83,9 +110,37 @@ export class FloorPlanItem extends Group {
   }
 
   private createLabel(text: string) {
-    if (!this.options?.font) {
-      return;
-    }
+    const shapeBoundingBox = getBoundingBox(this.hallShape.geometry);
+
+    const box = new Box3().setFromObject(this.hallShape);
+    const width = box.max.x - box.min.x;
+    const height = box.max.y - box.min.y;
+
+    const div = document.createElement("div");
+    div.className = "label";
+    div.style.color = "black";
+    div.textContent = text;
+    div.style.overflow = "hidden";
+    // div.style.width = `${width}px`;
+    // div.style.height = `${height}px`;
+
+    const label = new CSS2DObject(div);
+
+    // console.log("this.hallShape.position", this.hallShape);
+
+    // console.log(
+    //   "this.hallShape.position",
+    //   this.hallShape.geometry.boundingSphere?.center
+    // );
+
+    // console.log("label", label);
+    //
+    // console.log("shapeBoundingBox", shapeBoundingBox);
+
+    // label.
+
+    label.position.set(shapeBoundingBox.centerX, shapeBoundingBox.centerY, 1);
+    this.add(label);
 
     // const shapeBoundingBox = getBoundingBox(this.hallShape.geometry);
     //
@@ -110,13 +165,9 @@ export class FloorPlanItem extends Group {
     // const sprite = new Sprite(spriteMat);
     // sprite.position.set(shapeBoundingBox.centerX, shapeBoundingBox.centerY, 2);
     // sprite.scale.set(shapeBoundingBox.width, shapeBoundingBox.height, 1);
-
     // console.log("sprite", sprite);
-
     // mesh.position.set(shapeBoundingBox.centerX, shapeBoundingBox.centerY, 2);
-
     // this.hallShape.add(sprite);
-
     // const shapeBoundingBox = getBoundingBox(this.hallShape.geometry);
     //
     // const textMaterial = new MeshBasicMaterial({ color: 0x000000 });
@@ -134,9 +185,7 @@ export class FloorPlanItem extends Group {
     // textMesh.position.x = shapeBoundingBox.centerX - textBoundingBox.width / 2;
     // textMesh.position.y = shapeBoundingBox.centerY - textBoundingBox.height / 2;
     // textMesh.position.z = 2;
-
     // this.add(textMesh);
-
     // const label = new Text();
     // label.text = text;
     // label.color = "black";
@@ -150,7 +199,6 @@ export class FloorPlanItem extends Group {
     // label.maxWidth = shapeBoundingBox.width - 30;
     //
     // onSync && label.sync(onSync);
-
     // this.hallLabel = textMesh;
   }
 

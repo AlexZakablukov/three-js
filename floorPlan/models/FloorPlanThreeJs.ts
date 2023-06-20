@@ -9,7 +9,7 @@ import {
 } from "../types/floorPlan";
 import { IFloorPlanItem } from "../types/prepared";
 import { FloorPlanItem } from "./FloorPlanItem";
-import { Object3D } from "three";
+import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
 
 CameraControls.install({ THREE });
 
@@ -17,6 +17,7 @@ export class FloorPlanThreeJs {
   private container: HTMLElement;
 
   private renderer: THREE.WebGLRenderer;
+  private labelRenderer: CSS2DRenderer;
   private scene: THREE.Scene;
   private camera: THREE.OrthographicCamera;
 
@@ -44,11 +45,14 @@ export class FloorPlanThreeJs {
     items,
     events,
   }: IFloorPlanOptions) {
-    this.windowResizeHandler = this.onWindowResize.bind(this);
-    const container = this.initRenderer(containerId);
+    const container = document.getElementById(containerId);
     if (!container) {
       return;
     }
+    this.container = container;
+    this.windowResizeHandler = this.onWindowResize.bind(this);
+    this.initRenderer();
+    this.init2DRenderer();
     this.initScene(bgColor);
     this.initCamera();
     this.initBackground(bgTexture);
@@ -65,19 +69,23 @@ export class FloorPlanThreeJs {
     this.animate();
   }
 
-  private initRenderer(containerId: string) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-      return;
-    }
-    this.container = container;
+  private init2DRenderer() {
+    const { width, height } = this.getContainerSizes();
+    this.labelRenderer = new CSS2DRenderer();
+    this.labelRenderer.setSize(width, height);
+    this.labelRenderer.domElement.style.position = "absolute";
+    this.labelRenderer.domElement.style.top = "0px";
+    this.labelRenderer.domElement.style.pointerEvents = "none";
+    this.container.appendChild(this.labelRenderer.domElement);
+  }
+
+  private initRenderer() {
     const { width, height } = this.getContainerSizes();
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(width, height);
     this.container.appendChild(this.renderer.domElement);
 
     window.addEventListener("resize", this.windowResizeHandler, false);
-    return container;
   }
 
   private initScene(bgColor: string = "white") {
@@ -184,7 +192,7 @@ export class FloorPlanThreeJs {
 
   public render() {
     this.renderer.render(this.scene, this.camera);
-    console.log(this.renderer.info);
+    this.labelRenderer.render(this.scene, this.camera);
   }
 
   public destroy() {
@@ -208,7 +216,7 @@ export class FloorPlanThreeJs {
   }
 
   private cleanScene() {
-    this.scene.traverse((object: Object3D) => {
+    this.scene.traverse((object: THREE.Object3D) => {
       if (!(object instanceof THREE.Mesh)) {
         return;
       }
@@ -253,6 +261,7 @@ export class FloorPlanThreeJs {
 
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
+    this.labelRenderer.setSize(width, height);
   }
 
   private onPointerMove(event: PointerEvent) {
