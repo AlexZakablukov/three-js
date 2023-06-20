@@ -1,6 +1,6 @@
-import { ShapeGeometry } from "three";
+import { BufferGeometry } from "three";
 
-export const getBoundingBox = (geometry: ShapeGeometry) => {
+export const getBoundingBox = (geometry: BufferGeometry) => {
   geometry.computeBoundingBox();
 
   const boundingBox = geometry.boundingBox;

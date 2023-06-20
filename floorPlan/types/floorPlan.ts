@@ -18,6 +18,7 @@ export interface IFloorPlanEvents {
 
 export interface IFloorPlanItemOptions {
   events?: IFloorPlanItemEvents;
+  font: Font;
   onTextSync?: () => void;
 }
 
@@ -25,6 +26,7 @@ export interface IFloorPlanOptions {
   containerId: string;
   bgColor?: string;
   bgTexture: Texture;
+  font: Font;
   items: IFloorPlanItem[];
   events?: IFloorPlanEvents;
 }

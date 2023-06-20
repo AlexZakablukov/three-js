@@ -1,16 +1,19 @@
 "use client";
-import { useEffect, FC } from "react";
+import { useEffect, FC, useRef } from "react";
 import { FloorPlanThreeJs } from "@/floorPlan/models/FloorPlanThreeJs";
 import { Spinner } from "@/components/Spinner";
-import { useLoadTexture } from "@/floorPlan/hooks";
+import { useLoadFont, useLoadTexture } from "@/floorPlan/hooks";
 import { getPreparedHall } from "@/floorPlan/helpers/getPreparedHall";
 import { hallDataApi } from "@/floorPlan/mock/hall";
+
+const fontUrl = "/fonts/helvetiker_regular.typeface.json";
 
 interface IHallFloorPlanProps {
   id: string;
 }
 
 export const HallFloorPlan: FC<IHallFloorPlanProps> = ({ id }) => {
+  const floorPlanRef = useRef<FloorPlanThreeJs | null>(null);
   const { backgroundImage, items } = getPreparedHall(hallDataApi);
   const {
     texture,
@@ -18,27 +21,37 @@ export const HallFloorPlan: FC<IHallFloorPlanProps> = ({ id }) => {
     error: textureError,
   } = useLoadTexture(backgroundImage);
 
+  const { font, loading: fontLoading, error: fontError } = useLoadFont(fontUrl);
+
   useEffect(() => {
-    if (!texture) {
+    if (!texture || !font) {
       return;
     }
-    const floorPlan = new FloorPlanThreeJs({
+    floorPlanRef.current = new FloorPlanThreeJs({
       containerId: "floorPlan",
       bgTexture: texture,
       bgColor: "white",
+      font: font,
       items: items,
     });
     return () => {
-      floorPlan.destroy();
+      if (floorPlanRef.current !== null) {
+        //@ts-ignore
+        floorPlanRef.current.destroy();
+      }
     };
-  }, [texture, items]);
+  }, [texture, font, items]);
 
-  if (textureLoading) {
+  if (textureLoading || fontLoading) {
     return <Spinner />;
   }
 
-  if (textureError) {
-    return <div className="text-red-500">{textureError}</div>;
+  if (textureError || fontError) {
+    return (
+      <div className="text-red-500">
+        {textureError} | {fontError}
+      </div>
+    );
   }
 
   return (

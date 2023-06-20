@@ -8,31 +8,34 @@ import {
   EdgesGeometry,
   LineSegments,
   LineBasicMaterial,
+  Texture,
+  PlaneGeometry,
+  DoubleSide,
+  SpriteMaterial,
+  Sprite,
 } from "three";
 import { IFloorPlanItemData, IFloorPlanItem } from "../types/prepared";
 import { IParams, TCoords } from "@/floorPlan/types/helpers";
 import { getBoundingBox } from "@/floorPlan/helpers/getBoundingBox";
-import { Text } from "troika-three-text";
-import {
-  IFloorPlanItemEvents,
-  IFloorPlanItemOptions,
-} from "@/floorPlan/types/floorPlan";
+import { IFloorPlanItemOptions } from "@/floorPlan/types/floorPlan";
+import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
 
 export class FloorPlanItem extends Group {
   public data: IFloorPlanItemData;
   private hallShape: Mesh<ShapeGeometry, MeshBasicMaterial>;
   private hallStroke: LineSegments;
-  private hallLabel: Text;
+  private hallLabel: Mesh<TextGeometry, MeshBasicMaterial>;
   private initialShapeOpacity: number = 1;
-  private events?: IFloorPlanItemEvents;
+  private options?: IFloorPlanItemOptions;
 
   constructor(items: IFloorPlanItem, options: IFloorPlanItemOptions) {
     super();
     const { coords, params, data } = items;
+    this.data = data;
+    this.options = options;
     coords && params && this.createShape(coords, params);
     this.hallShape && params && this.createStroke(params);
-    this.data = data;
-    this.events = options.events;
+    this.hallShape && this.createLabel(data.title);
   }
 
   private createShape(coords: TCoords[], params: IParams) {
@@ -79,29 +82,82 @@ export class FloorPlanItem extends Group {
     this.hallStroke.position.z = 1;
   }
 
-  private createLabel(text: string, onSync?: () => void) {
-    const shapeBoundingBox = getBoundingBox(this.hallShape.geometry);
+  private createLabel(text: string) {
+    if (!this.options?.font) {
+      return;
+    }
 
-    const label = new Text();
-    label.text = text;
-    label.color = "black";
-    label.fontSize = 10;
-    label.textAlign = "center";
-    label.anchorX = "center";
-    label.anchorY = "middle";
-    label.position.x = shapeBoundingBox.centerX;
-    label.position.y = shapeBoundingBox.centerY;
-    label.position.z = 3;
-    label.maxWidth = shapeBoundingBox.width - 30;
+    // const shapeBoundingBox = getBoundingBox(this.hallShape.geometry);
+    //
+    // const canvas = document.createElement("canvas");
+    // const context = canvas.getContext("2d");
+    // canvas.width = shapeBoundingBox.width;
+    // canvas.height = shapeBoundingBox.height;
+    // // console.log(context.measureText(text), text);
+    // context.font = "20pt Arial";
+    // context.textAlign = "center";
+    // context.fillStyle = "rgba(0,0,0,0.95)";
+    // context.fillText(text, canvas.width / 2, canvas.height / 2);
+    //
+    // // console.log("context", context);
+    //
+    // const texture = new Texture(canvas);
+    // texture.needsUpdate = true;
+    //
+    // const spriteMat = new SpriteMaterial({
+    //   map: texture,
+    // });
+    // const sprite = new Sprite(spriteMat);
+    // sprite.position.set(shapeBoundingBox.centerX, shapeBoundingBox.centerY, 2);
+    // sprite.scale.set(shapeBoundingBox.width, shapeBoundingBox.height, 1);
 
-    onSync && label.sync(onSync);
+    // console.log("sprite", sprite);
 
-    this.hallLabel = label;
+    // mesh.position.set(shapeBoundingBox.centerX, shapeBoundingBox.centerY, 2);
+
+    // this.hallShape.add(sprite);
+
+    // const shapeBoundingBox = getBoundingBox(this.hallShape.geometry);
+    //
+    // const textMaterial = new MeshBasicMaterial({ color: 0x000000 });
+    //
+    // const textGeometry = new TextGeometry(text, {
+    //   font: this.options.font,
+    //   size: 12,
+    //   height: 0,
+    // });
+    //
+    // const textBoundingBox = getBoundingBox(textGeometry);
+    //
+    // const textMesh = new Mesh(textGeometry, textMaterial);
+    //
+    // textMesh.position.x = shapeBoundingBox.centerX - textBoundingBox.width / 2;
+    // textMesh.position.y = shapeBoundingBox.centerY - textBoundingBox.height / 2;
+    // textMesh.position.z = 2;
+
+    // this.add(textMesh);
+
+    // const label = new Text();
+    // label.text = text;
+    // label.color = "black";
+    // label.fontSize = 10;
+    // label.textAlign = "center";
+    // label.anchorX = "center";
+    // label.anchorY = "middle";
+    // label.position.x = shapeBoundingBox.centerX;
+    // label.position.y = shapeBoundingBox.centerY;
+    // label.position.z = 3;
+    // label.maxWidth = shapeBoundingBox.width - 30;
+    //
+    // onSync && label.sync(onSync);
+
+    // this.hallLabel = textMesh;
   }
 
   public onClick() {
     this.hallShape.material.color.setHex(Math.random() * 0xffffff);
-    this.events?.onItemClick && this.events.onItemClick(this.data);
+    this.options?.events?.onItemClick &&
+      this.options?.events.onItemClick(this.data);
   }
 
   public onMouseEnter() {
@@ -109,11 +165,13 @@ export class FloorPlanItem extends Group {
       this.initialShapeOpacity - 0.2,
       0.1
     );
-    this.events?.onItemEnter && this.events.onItemEnter(this.data);
+    this.options?.events?.onItemEnter &&
+      this.options?.events.onItemEnter(this.data);
   }
 
   public onMouseLeave() {
     this.hallShape.material.opacity = this.initialShapeOpacity;
-    this.events?.onItemLeave && this.events.onItemLeave(this.data);
+    this.options?.events?.onItemLeave &&
+      this.options?.events.onItemLeave(this.data);
   }
 }

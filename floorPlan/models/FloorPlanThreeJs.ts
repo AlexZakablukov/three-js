@@ -9,6 +9,7 @@ import {
 } from "../types/floorPlan";
 import { IFloorPlanItem } from "../types/prepared";
 import { FloorPlanItem } from "./FloorPlanItem";
+import { Object3D } from "three";
 
 CameraControls.install({ THREE });
 
@@ -33,13 +34,17 @@ export class FloorPlanThreeJs {
 
   private stats: Stats;
 
+  private windowResizeHandler: () => void;
+
   constructor({
     containerId,
     bgTexture,
     bgColor,
+    font,
     items,
     events,
   }: IFloorPlanOptions) {
+    this.windowResizeHandler = this.onWindowResize.bind(this);
     const container = this.initRenderer(containerId);
     if (!container) {
       return;
@@ -53,6 +58,7 @@ export class FloorPlanThreeJs {
     this.initStats();
     this.renderItems(items, {
       events: events?.item,
+      font: font,
       onTextSync: this.render.bind(this),
     });
     this.render();
@@ -70,7 +76,7 @@ export class FloorPlanThreeJs {
     this.renderer.setSize(width, height);
     this.container.appendChild(this.renderer.domElement);
 
-    window.addEventListener("resize", () => this.onWindowResize(), false);
+    window.addEventListener("resize", this.windowResizeHandler, false);
     return container;
   }
 
@@ -137,7 +143,7 @@ export class FloorPlanThreeJs {
     // calculate minZoom to contain bgImage and also increase a bit by * 0.7
     // this.controls.minZoom =
     //   Math.min(width / this.bgWidth, height / this.bgHeight) * 0.9;
-    this.controls.maxZoom = 3;
+    // this.controls.maxZoom = 5;
 
     this.controls.addEventListener(
       "controlstart",
@@ -178,12 +184,44 @@ export class FloorPlanThreeJs {
 
   public render() {
     this.renderer.render(this.scene, this.camera);
+    console.log(this.renderer.info);
   }
 
   public destroy() {
-    // TODO: remove all event listeners
     console.log("destroyed");
+    this.renderer.dispose();
+    this.cleanScene();
     this.controls.disconnect();
+    window.removeEventListener("resize", this.windowResizeHandler, false);
+  }
+
+  private cleanMaterial(material: THREE.Material) {
+    material.dispose();
+
+    // dispose textures
+    if ("map" in material) {
+      const texture = material["map"];
+      if (texture && texture instanceof THREE.Texture) {
+        texture.dispose();
+      }
+    }
+  }
+
+  private cleanScene() {
+    this.scene.traverse((object: Object3D) => {
+      if (!(object instanceof THREE.Mesh)) {
+        return;
+      }
+      // Dispose of the mesh's geometry and material
+      object.geometry.dispose();
+
+      if (object.material instanceof THREE.Material) {
+        this.cleanMaterial(object.material);
+      } else {
+        // an array of materials
+        for (const material of object.material) this.cleanMaterial(material);
+      }
+    });
   }
 
   private renderItems(items: IFloorPlanItem[], options: IFloorPlanItemOptions) {
