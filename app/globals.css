@@ -36,7 +36,6 @@ body {
   /*font-size: 1em;*/
   overflow: hidden;
   box-sizing: border-box;
-  padding: 4px;
   text-align: center;
   display: flex;
   justify-content: center;
@@ -46,10 +45,11 @@ body {
 
 .label-text{
   color: black;
-  font-size: 10cqw;
+  font-size: 10cqmin;
+  line-height: 1.5;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 80%;
+  max-width: 90%;
   overflow: hidden;
 }
 
