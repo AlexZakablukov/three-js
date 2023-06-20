@@ -1,6 +1,7 @@
 import { IFloorPlanItem, IFloorPlanItemData } from "../types/prepared";
 import { Texture } from "three";
 import { Font } from "three/examples/jsm/loaders/FontLoader";
+import { CSS2DObject } from "@/floorPlan/models/CSS2DRenderer";
 
 export enum FloorPlanObjectType {
   Hall = "hall",
@@ -20,6 +21,7 @@ export interface IFloorPlanItemOptions {
   events?: IFloorPlanItemEvents;
   font: Font;
   onTextSync?: () => void;
+  labelObject: CSS2DObject;
 }
 
 export interface IFloorPlanOptions {

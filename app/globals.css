@@ -30,6 +30,29 @@ body {
   height: calc(100vh - 3rem);
 }
 
+.label{
+  container-type: inline-size;
+  position: absolute;
+  /*font-size: 1em;*/
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 4px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.label-text{
+  color: black;
+  font-size: 10cqw;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 80%;
+  overflow: hidden;
+}
+
 /*.labels{*/
 /*  position: absolute;*/
 /*  top: 0;*/

@@ -16,7 +16,6 @@ import { DrawingTools, IParams, TCoords } from "@/floorPlan/types/helpers";
 import { IFloorPlanItemOptions } from "@/floorPlan/types/floorPlan";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
 import { getBoundingBox } from "@/floorPlan/helpers/getBoundingBox";
-import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 
 export class FloorPlanItem extends Group {
   public data: IFloorPlanItemData;
@@ -38,7 +37,7 @@ export class FloorPlanItem extends Group {
     // }
     coords && params && this.createShape(coords, params);
     this.hallShape && params && this.createStroke(params);
-    this.hallShape && this.createLabel(data.title);
+    this.hallShape && coords && this.createLabel(data.title, coords);
   }
 
   private createRect(coords: TCoords[], params: IParams) {
@@ -109,22 +108,28 @@ export class FloorPlanItem extends Group {
     this.hallStroke.position.z = 1;
   }
 
-  private createLabel(text: string) {
+  private createLabel(text: string, coords: TCoords[]) {
+    if (!this.options?.labelObject) {
+      return;
+    }
     const shapeBoundingBox = getBoundingBox(this.hallShape.geometry);
 
-    const box = new Box3().setFromObject(this.hallShape);
-    const width = box.max.x - box.min.x;
-    const height = box.max.y - box.min.y;
-
     const div = document.createElement("div");
-    div.className = "label";
-    div.style.color = "black";
-    div.textContent = text;
-    div.style.overflow = "hidden";
+    div.classList.add("label");
+    div.style.top = `${-shapeBoundingBox.maxY}px`;
+    div.style.left = `${shapeBoundingBox.minX}px`;
+    div.style.width = `${shapeBoundingBox.width}px`;
+    div.style.height = `${shapeBoundingBox.height}px`;
+    const span = document.createElement("span");
+    // span.textContent = text;
+    span.textContent = text;
+    span.classList.add("label-text");
+    div.appendChild(span);
+
     // div.style.width = `${width}px`;
     // div.style.height = `${height}px`;
 
-    const label = new CSS2DObject(div);
+    this.options.labelObject.element.appendChild(div);
 
     // console.log("this.hallShape.position", this.hallShape);
 
@@ -139,8 +144,8 @@ export class FloorPlanItem extends Group {
 
     // label.
 
-    label.position.set(shapeBoundingBox.centerX, shapeBoundingBox.centerY, 1);
-    this.add(label);
+    // label.position.set(shapeBoundingBox.centerX, shapeBoundingBox.centerY, 1);
+    // this.add(label);
 
     // const shapeBoundingBox = getBoundingBox(this.hallShape.geometry);
     //

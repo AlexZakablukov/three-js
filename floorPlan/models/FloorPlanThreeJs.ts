@@ -9,7 +9,7 @@ import {
 } from "../types/floorPlan";
 import { IFloorPlanItem } from "../types/prepared";
 import { FloorPlanItem } from "./FloorPlanItem";
-import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
+import { CSS2DObject, CSS2DRenderer } from "./CSS2DRenderer";
 
 CameraControls.install({ THREE });
 
@@ -34,6 +34,7 @@ export class FloorPlanThreeJs {
   private bgHeight: number;
 
   private stats: Stats;
+  private labelObject: CSS2DObject;
 
   private windowResizeHandler: () => void;
 
@@ -64,6 +65,7 @@ export class FloorPlanThreeJs {
       events: events?.item,
       font: font,
       onTextSync: this.render.bind(this),
+      labelObject: this.labelObject,
     });
     this.render();
     this.animate();
@@ -106,7 +108,18 @@ export class FloorPlanThreeJs {
     // move image to x and -y coordinates
     this.bgMesh.position.set(this.bgWidth / 2, -this.bgHeight / 2, 0);
 
+    const div = document.createElement("div");
+    div.style.width = `${this.bgWidth}px`;
+    div.style.height = `${this.bgHeight}px`;
+
+    console.log("bg", this.camera.zoom);
+
+    this.labelObject = new CSS2DObject(div);
+
+    this.labelObject.position.copy(this.bgMesh.position);
+
     this.scene.add(this.bgMesh);
+    this.scene.add(this.labelObject);
   }
 
   private initCamera() {
@@ -120,6 +133,7 @@ export class FloorPlanThreeJs {
       10
     );
     this.camera.position.set(0, 0, 5);
+    console.log("initCamera", this.camera.zoom);
   }
 
   public centerCamera(enableTransition: boolean = false) {
@@ -186,6 +200,7 @@ export class FloorPlanThreeJs {
     window.requestAnimationFrame(this.animate.bind(this));
 
     if (hasControlsUpdated) {
+      console.log("zoom", this.camera.zoom);
       this.render();
     }
   }
