@@ -28,3 +28,15 @@ export interface IItemToBePrepared {
   coords: string | null;
   params: string | null;
 }
+
+export interface IBounds {
+  maxX: number;
+  minX: number;
+  maxY: number;
+  minY: number;
+  centerX: number;
+  centerY: number;
+  width: number;
+  height: number;
+  area: number;
+}

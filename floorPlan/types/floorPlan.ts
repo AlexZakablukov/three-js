@@ -19,16 +19,13 @@ export interface IFloorPlanEvents {
 
 export interface IFloorPlanItemOptions {
   events?: IFloorPlanItemEvents;
-  font: Font;
-  onTextSync?: () => void;
-  labelObject: CSS2DObject;
 }
 
 export interface IFloorPlanOptions {
-  containerId: string;
+  canvasContainerId: string;
+  labelContainerId: string;
   bgColor?: string;
   bgTexture: Texture;
-  font: Font;
   items: IFloorPlanItem[];
   events?: IFloorPlanEvents;
 }

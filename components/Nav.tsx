@@ -23,6 +23,14 @@ const LINKS = [
     href: Routes.ExpoFloorPlan,
     text: "Expo Floorplan",
   },
+  {
+    href: Routes.ReactThreeFiber,
+    text: "React Three Fiber",
+  },
+  {
+    href: Routes.RTFloorplan,
+    text: "React Three Fiber Floorplan",
+  },
 ];
 
 export const Nav: FC = () => {

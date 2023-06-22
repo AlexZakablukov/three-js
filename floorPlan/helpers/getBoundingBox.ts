@@ -1,6 +1,7 @@
 import { BufferGeometry } from "three";
+import { IBounds } from "../types/helpers";
 
-export const getBoundingBox = (geometry: BufferGeometry) => {
+export const getBoundingBox = (geometry: BufferGeometry): IBounds => {
   geometry.computeBoundingBox();
 
   const boundingBox = geometry.boundingBox;
@@ -14,6 +15,7 @@ export const getBoundingBox = (geometry: BufferGeometry) => {
   const centerY = (maxY + minY) / 2;
   const width = maxX - minX;
   const height = maxY - minY;
+  const area = width * height;
 
   return {
     maxX,
@@ -24,5 +26,6 @@ export const getBoundingBox = (geometry: BufferGeometry) => {
     centerY,
     width,
     height,
+    area,
   };
 };

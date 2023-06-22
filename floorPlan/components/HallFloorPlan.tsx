@@ -2,11 +2,9 @@
 import { useEffect, FC, useRef } from "react";
 import { FloorPlanThreeJs } from "@/floorPlan/models/FloorPlanThreeJs";
 import { Spinner } from "@/components/Spinner";
-import { useLoadFont, useLoadTexture } from "@/floorPlan/hooks";
+import { useLoadTexture } from "@/floorPlan/hooks";
 import { getPreparedHall } from "@/floorPlan/helpers/getPreparedHall";
 import { hallDataApi } from "@/floorPlan/mock/hall";
-
-const fontUrl = "/fonts/helvetiker_regular.typeface.json";
 
 interface IHallFloorPlanProps {
   id: string;
@@ -21,17 +19,15 @@ export const HallFloorPlan: FC<IHallFloorPlanProps> = ({ id }) => {
     error: textureError,
   } = useLoadTexture(backgroundImage);
 
-  const { font, loading: fontLoading, error: fontError } = useLoadFont(fontUrl);
-
   useEffect(() => {
-    if (!texture || !font) {
+    if (!texture) {
       return;
     }
     floorPlanRef.current = new FloorPlanThreeJs({
-      containerId: "floorPlan",
+      canvasContainerId: "floorPlan",
+      labelContainerId: "labels",
       bgTexture: texture,
       bgColor: "white",
-      font: font,
       items: items,
     });
     return () => {
@@ -40,23 +36,21 @@ export const HallFloorPlan: FC<IHallFloorPlanProps> = ({ id }) => {
         floorPlanRef.current.destroy();
       }
     };
-  }, [texture, font, items]);
+  }, [texture, items]);
 
-  if (textureLoading || fontLoading) {
+  if (textureLoading) {
     return <Spinner />;
   }
 
-  if (textureError || fontError) {
-    return (
-      <div className="text-red-500">
-        {textureError} | {fontError}
-      </div>
-    );
+  if (textureError) {
+    return <div className="text-red-500">{textureError}</div>;
   }
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div id="floorPlan" className="w-full relative floorPlan-height" />
+      <div id="floorPlan" className="w-full relative floorPlan-height">
+        <div id="labels" className="labels" />
+      </div>
     </div>
   );
 };

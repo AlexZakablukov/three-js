@@ -4,12 +4,10 @@ import { FloorPlanThreeJs } from "@/floorPlan/models/FloorPlanThreeJs";
 import { getPreparedPlace } from "@/floorPlan/helpers";
 import { placeDataApi } from "@/floorPlan/mock/place";
 import { Spinner } from "@/components/Spinner";
-import { useLoadFont, useLoadTexture } from "@/floorPlan/hooks";
+import { useLoadTexture } from "@/floorPlan/hooks";
 import { Routes } from "@/utils/routes";
 import { IFloorPlanItemData } from "@/floorPlan/types/prepared";
 import { useRouter } from "next/navigation";
-
-const fontUrl = "/fonts/helvetiker_regular.typeface.json";
 
 export const GeneralFloorPlan = () => {
   const router = useRouter();
@@ -21,8 +19,6 @@ export const GeneralFloorPlan = () => {
     error: textureError,
   } = useLoadTexture(backgroundImage);
 
-  const { font, loading: fontLoading, error: fontError } = useLoadFont(fontUrl);
-
   const handleHallClick = useCallback(
     (data: IFloorPlanItemData) => {
       router.push(`${Routes.ExpoFloorPlan}/${data.id}`);
@@ -31,14 +27,14 @@ export const GeneralFloorPlan = () => {
   );
 
   useEffect(() => {
-    if (!texture || !font) {
+    if (!texture) {
       return;
     }
     floorPlanRef.current = new FloorPlanThreeJs({
-      containerId: "floorPlan",
+      canvasContainerId: "floorPlan",
+      labelContainerId: "labels",
       bgTexture: texture,
       bgColor: "white",
-      font: font,
       items: items,
       events: {
         item: {
@@ -52,23 +48,21 @@ export const GeneralFloorPlan = () => {
         floorPlanRef.current.destroy();
       }
     };
-  }, [handleHallClick, texture, font, items]);
+  }, [handleHallClick, texture, items]);
 
-  if (textureLoading || fontLoading) {
+  if (textureLoading) {
     return <Spinner />;
   }
 
-  if (textureError || fontError) {
-    return (
-      <div className="text-red-500">
-        {textureError} | {fontError}
-      </div>
-    );
+  if (textureError) {
+    return <div className="text-red-500">{textureError}</div>;
   }
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div id="floorPlan" className="w-full relative floorPlan-height" />
+      <div id="floorPlan" className="w-full relative floorPlan-height">
+        <div id="labels" className="labels" />
+      </div>
     </div>
   );
 };

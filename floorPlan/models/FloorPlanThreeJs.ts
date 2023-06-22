@@ -9,15 +9,20 @@ import {
 } from "../types/floorPlan";
 import { IFloorPlanItem } from "../types/prepared";
 import { FloorPlanItem } from "./FloorPlanItem";
-import { CSS2DObject, CSS2DRenderer } from "./CSS2DRenderer";
 
 CameraControls.install({ THREE });
 
 export class FloorPlanThreeJs {
-  private container: HTMLElement;
+  private canvasContainer: HTMLElement;
+  private labelsContainer: HTMLElement;
+
+  private labels: {
+    position: THREE.Vector3;
+    elem: HTMLDivElement;
+    area: number;
+  }[] = [];
 
   private renderer: THREE.WebGLRenderer;
-  private labelRenderer: CSS2DRenderer;
   private scene: THREE.Scene;
   private camera: THREE.OrthographicCamera;
 
@@ -29,31 +34,36 @@ export class FloorPlanThreeJs {
   private mouse: THREE.Vector2;
   private center: THREE.Vector3;
 
+  private tempV: THREE.Vector3 = new THREE.Vector3();
+  private cameraPosition: THREE.Vector3 = new THREE.Vector3();
+  private cameraToPoint: THREE.Vector3 = new THREE.Vector3();
+  private normalMatrix: THREE.Matrix3 = new THREE.Matrix3();
+
   private bgMesh: THREE.Mesh;
   private bgWidth: number;
   private bgHeight: number;
 
   private stats: Stats;
-  private labelObject: CSS2DObject;
 
   private windowResizeHandler: () => void;
 
   constructor({
-    containerId,
+    canvasContainerId,
+    labelContainerId,
     bgTexture,
     bgColor,
-    font,
     items,
     events,
   }: IFloorPlanOptions) {
-    const container = document.getElementById(containerId);
-    if (!container) {
+    const canvasContainer = document.getElementById(canvasContainerId);
+    const labelsContainer = document.getElementById(labelContainerId);
+    if (!canvasContainer || !labelsContainer) {
       return;
     }
-    this.container = container;
+    this.canvasContainer = canvasContainer;
+    this.labelsContainer = labelsContainer;
     this.windowResizeHandler = this.onWindowResize.bind(this);
     this.initRenderer();
-    this.init2DRenderer();
     this.initScene(bgColor);
     this.initCamera();
     this.initBackground(bgTexture);
@@ -63,29 +73,16 @@ export class FloorPlanThreeJs {
     this.initStats();
     this.renderItems(items, {
       events: events?.item,
-      font: font,
-      onTextSync: this.render.bind(this),
-      labelObject: this.labelObject,
     });
     this.render();
     this.animate();
-  }
-
-  private init2DRenderer() {
-    const { width, height } = this.getContainerSizes();
-    this.labelRenderer = new CSS2DRenderer();
-    this.labelRenderer.setSize(width, height);
-    this.labelRenderer.domElement.style.position = "absolute";
-    this.labelRenderer.domElement.style.top = "0px";
-    this.labelRenderer.domElement.style.pointerEvents = "none";
-    this.container.appendChild(this.labelRenderer.domElement);
   }
 
   private initRenderer() {
     const { width, height } = this.getContainerSizes();
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(width, height);
-    this.container.appendChild(this.renderer.domElement);
+    this.canvasContainer.appendChild(this.renderer.domElement);
 
     window.addEventListener("resize", this.windowResizeHandler, false);
   }
@@ -112,14 +109,7 @@ export class FloorPlanThreeJs {
     div.style.width = `${this.bgWidth}px`;
     div.style.height = `${this.bgHeight}px`;
 
-    console.log("bg", this.camera.zoom);
-
-    this.labelObject = new CSS2DObject(div);
-
-    this.labelObject.position.copy(this.bgMesh.position);
-
     this.scene.add(this.bgMesh);
-    this.scene.add(this.labelObject);
   }
 
   private initCamera() {
@@ -149,7 +139,7 @@ export class FloorPlanThreeJs {
     this.stats = new Stats();
     //@ts-ignore
     this.stats.domElement.style.cssText = "position:absolute;top:0px;left:0px;";
-    this.container.appendChild(this.stats.dom);
+    this.canvasContainer.appendChild(this.stats.dom);
   }
 
   private initControls() {
@@ -178,17 +168,17 @@ export class FloorPlanThreeJs {
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
 
-    this.container.addEventListener(
+    this.renderer.domElement.addEventListener(
       "pointermove",
       this.onPointerMove.bind(this)
     );
 
-    this.container.addEventListener(
+    this.renderer.domElement.addEventListener(
       "pointerleave",
       this.onPointerLeave.bind(this)
     );
 
-    this.container.addEventListener("click", this.onClick.bind(this));
+    this.renderer.domElement.addEventListener("click", this.onClick.bind(this));
   }
 
   public animate() {
@@ -200,14 +190,13 @@ export class FloorPlanThreeJs {
     window.requestAnimationFrame(this.animate.bind(this));
 
     if (hasControlsUpdated) {
-      console.log("zoom", this.camera.zoom);
       this.render();
     }
   }
 
   public render() {
     this.renderer.render(this.scene, this.camera);
-    this.labelRenderer.render(this.scene, this.camera);
+    this.updateLabels();
   }
 
   public destroy() {
@@ -248,19 +237,110 @@ export class FloorPlanThreeJs {
   }
 
   private renderItems(items: IFloorPlanItem[], options: IFloorPlanItemOptions) {
+    // const geometries = [];
+    // items.forEach((item) => {
+    //   const { coords, params, data } = item;
+    //   if (coords && params) {
+    //     const shape = new THREE.Shape();
+    //     shape.moveTo(coords[0][0], -coords[0][1]);
+    //     for (let i = 1; i < coords.length; i++) {
+    //       shape.lineTo(coords[i][0], -coords[i][1]);
+    //     }
+    //     shape.closePath();
+    //
+    //     const geometry = new THREE.ShapeGeometry(shape);
+    //
+    //     const rgb = [
+    //       params.bgColor?.r ?? 0,
+    //       params.bgColor?.g ?? 0,
+    //       params.bgColor?.b ?? 0,
+    //     ];
+    //
+    //     // make an array to store colors for each vertex
+    //     const numVerts = geometry.getAttribute("position").count;
+    //     console.log({ numVerts });
+    //     const itemSize = 3; // r, g, b
+    //     const colors = new Uint8Array(itemSize * numVerts);
+    //
+    //     // copy the color into the colors array for each vertex
+    //     colors.forEach((v, ndx) => {
+    //       colors[ndx] = rgb[ndx % 3];
+    //     });
+    //
+    //     const normalized = true;
+    //     const colorAttrib = new THREE.BufferAttribute(
+    //       colors,
+    //       itemSize,
+    //       normalized
+    //     );
+    //     geometry.setAttribute("color", colorAttrib);
+    //
+    //     geometries.push(geometry);
+    //   }
+    // });
+    // const mergedGeometry = BufferGeometryUtils.mergeGeometries(
+    //   geometries,
+    //   false
+    // );
+    // const material = new THREE.MeshBasicMaterial({
+    //   vertexColors: true,
+    // });
+    // const mesh = new THREE.Mesh(mergedGeometry, material);
+    // this.scene.add(mesh);
+
     items.forEach((item) => {
       const floorPlanMesh = new FloorPlanItem(item, options);
+      this.labels.push({
+        position: new THREE.Vector3(
+          floorPlanMesh.bounds.centerX,
+          floorPlanMesh.bounds.centerY,
+          1
+        ),
+        area: floorPlanMesh.bounds.area,
+        elem: floorPlanMesh.label,
+      });
+      this.labelsContainer.appendChild(floorPlanMesh.label);
+      console.log("floorPlanMesh", floorPlanMesh);
       this.scene.add(floorPlanMesh);
+    });
+  }
+
+  private updateLabels() {
+    console.log("updateLabels");
+    if (!this.labels.length) {
+      return;
+    }
+    this.normalMatrix.getNormalMatrix(this.camera.matrixWorldInverse);
+    // get the camera's position
+    this.camera.getWorldPosition(this.cameraPosition);
+    this.labels.forEach((label) => {
+      this.tempV.copy(label.position);
+      this.tempV.applyMatrix3(this.normalMatrix);
+      this.cameraToPoint.copy(label.position);
+      this.cameraToPoint
+        .applyMatrix4(this.camera.matrixWorldInverse)
+        .normalize();
+
+      this.tempV.copy(label.position);
+      this.tempV.project(this.camera);
+
+      // convert the normalized position to CSS coordinates
+      const x = (this.tempV.x * 0.5 + 0.5) * this.canvasContainer.clientWidth;
+      const y = (this.tempV.y * -0.5 + 0.5) * this.canvasContainer.clientHeight;
+
+      console.log("cameraToPoint", this.cameraToPoint);
+      label.elem.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px)`;
     });
   }
 
   private getContainerSizes(): IContainerSizes {
     return {
-      width: this.container.clientWidth,
-      height: this.container.clientHeight,
-      ratio: this.container.clientWidth / this.container.clientHeight,
-      offsetLeft: this.container.offsetLeft,
-      offsetTop: this.container.offsetTop,
+      width: this.canvasContainer.clientWidth,
+      height: this.canvasContainer.clientHeight,
+      ratio:
+        this.canvasContainer.clientWidth / this.canvasContainer.clientHeight,
+      offsetLeft: this.canvasContainer.offsetLeft,
+      offsetTop: this.canvasContainer.offsetTop,
     };
   }
 
@@ -276,7 +356,6 @@ export class FloorPlanThreeJs {
 
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
-    this.labelRenderer.setSize(width, height);
   }
 
   private onPointerMove(event: PointerEvent) {
