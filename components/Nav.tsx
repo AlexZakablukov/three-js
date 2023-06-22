@@ -16,20 +16,8 @@ const LINKS = [
     text: "Spheres (raycaster)",
   },
   {
-    href: Routes.FloorPlan,
-    text: "Floorplan",
-  },
-  {
     href: Routes.ExpoFloorPlan,
     text: "Expo Floorplan",
-  },
-  {
-    href: Routes.ReactThreeFiber,
-    text: "React Three Fiber",
-  },
-  {
-    href: Routes.RTFloorplan,
-    text: "React Three Fiber Floorplan",
   },
 ];
 

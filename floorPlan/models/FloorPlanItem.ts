@@ -80,30 +80,29 @@ export class FloorPlanItem extends Mesh {
   private createLabel(text: string) {
     const div = document.createElement("div");
     div.classList.add("label");
-    div.textContent = text;
+    div.style.width = `${this.bounds.width}px`;
+    div.style.height = `${this.bounds.height}px`;
+
+    const innerDiv = document.createElement("div");
+    innerDiv.textContent = text;
+    innerDiv.classList.add("label-text");
+    div.appendChild(innerDiv);
+
     this.label = div;
-    // div.style.top = `${-shapeBoundingBox.maxY}px`;
-    // div.style.left = `${shapeBoundingBox.minX}px`;
-    // div.style.width = `${shapeBoundingBox.width}px`;
-    // div.style.height = `${shapeBoundingBox.height}px`;
-    // const span = document.createElement("span");
-    // span.textContent = text;
-    // span.classList.add("label-text");
-    // div.appendChild(span);
   }
 
   public onClick() {
     this.material.color.setHex(Math.random() * 0xffffff);
-    this.events?.onItemClick && this.events.onItemClick(this.data);
+    this.events?.onItemClick && this.events.onItemClick(this.userData);
   }
 
   public onMouseEnter() {
     this.material.opacity = Math.max(this.initialShapeOpacity - 0.2, 0.1);
-    this.events?.onItemEnter && this.events.onItemEnter(this.data);
+    this.events?.onItemEnter && this.events.onItemEnter(this.userData);
   }
 
   public onMouseLeave() {
     this.material.opacity = this.initialShapeOpacity;
-    this.events?.onItemLeave && this.events.onItemLeave(this.data);
+    this.events?.onItemLeave && this.events.onItemLeave(this.userData);
   }
 }

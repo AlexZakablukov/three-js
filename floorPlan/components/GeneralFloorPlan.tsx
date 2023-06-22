@@ -27,6 +27,9 @@ export const GeneralFloorPlan = () => {
   );
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
     if (!texture) {
       return;
     }
@@ -60,7 +63,10 @@ export const GeneralFloorPlan = () => {
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div id="floorPlan" className="w-full relative floorPlan-height">
+      <div
+        id="floorPlan"
+        className="w-full relative floorPlan-height overflow-hidden"
+      >
         <div id="labels" className="labels" />
       </div>
     </div>

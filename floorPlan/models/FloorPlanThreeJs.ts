@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
+import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
 import CameraControls from "camera-controls";
 
 import {
@@ -36,14 +37,22 @@ export class FloorPlanThreeJs {
 
   private tempV: THREE.Vector3 = new THREE.Vector3();
   private cameraPosition: THREE.Vector3 = new THREE.Vector3();
-  private cameraToPoint: THREE.Vector3 = new THREE.Vector3();
-  private normalMatrix: THREE.Matrix3 = new THREE.Matrix3();
 
   private bgMesh: THREE.Mesh;
   private bgWidth: number;
   private bgHeight: number;
 
   private stats: Stats;
+  private gui: GUI;
+  private settings: {
+    minArea: number;
+    areaPerZoom: number;
+    maxZoom: number;
+  } = {
+    minArea: 0,
+    areaPerZoom: 300,
+    maxZoom: 50,
+  };
 
   private windowResizeHandler: () => void;
 
@@ -71,6 +80,7 @@ export class FloorPlanThreeJs {
     this.initRayCaster();
     this.centerCamera();
     this.initStats();
+    this.initGui();
     this.renderItems(items, {
       events: events?.item,
     });
@@ -123,7 +133,6 @@ export class FloorPlanThreeJs {
       10
     );
     this.camera.position.set(0, 0, 5);
-    console.log("initCamera", this.camera.zoom);
   }
 
   public centerCamera(enableTransition: boolean = false) {
@@ -142,12 +151,29 @@ export class FloorPlanThreeJs {
     this.canvasContainer.appendChild(this.stats.dom);
   }
 
+  private initGui() {
+    this.gui = new GUI();
+    this.gui
+      .add(this.settings, "minArea", 0, 1000, 50)
+      .onChange(this.render.bind(this));
+    this.gui
+      .add(this.settings, "areaPerZoom", 1, 10000, 50)
+      .onChange(this.render.bind(this));
+    this.gui
+      .add(this.settings, "maxZoom", 1, 100, 1)
+      .onChange((zoom: number) => {
+        this.controls.maxZoom = zoom;
+      });
+  }
+
   private initControls() {
     this.clock = new THREE.Clock();
     this.controls = new CameraControls(this.camera, this.renderer.domElement);
     this.controls.truckSpeed = 3;
     this.controls.dollyToCursor = true;
     this.controls.dollySpeed = 0.5;
+    this.controls.smoothTime = 0;
+    this.controls.draggingSmoothTime = 0;
     this.controls.mouseButtons.left = CameraControls.ACTION.TRUCK;
     this.controls.mouseButtons.right = CameraControls.ACTION.ZOOM;
 
@@ -155,7 +181,7 @@ export class FloorPlanThreeJs {
     // calculate minZoom to contain bgImage and also increase a bit by * 0.7
     // this.controls.minZoom =
     //   Math.min(width / this.bgWidth, height / this.bgHeight) * 0.9;
-    // this.controls.maxZoom = 5;
+    this.controls.maxZoom = this.settings.maxZoom;
 
     this.controls.addEventListener(
       "controlstart",
@@ -191,18 +217,19 @@ export class FloorPlanThreeJs {
 
     if (hasControlsUpdated) {
       this.render();
+      this.updateLabels();
     }
   }
 
   public render() {
     this.renderer.render(this.scene, this.camera);
-    this.updateLabels();
   }
 
   public destroy() {
     console.log("destroyed");
     this.renderer.dispose();
     this.cleanScene();
+    this.gui.destroy();
     this.controls.disconnect();
     window.removeEventListener("resize", this.windowResizeHandler, false);
   }
@@ -289,6 +316,9 @@ export class FloorPlanThreeJs {
     // this.scene.add(mesh);
 
     items.forEach((item) => {
+      if (!item.coords || !item.params) {
+        return;
+      }
       const floorPlanMesh = new FloorPlanItem(item, options);
       this.labels.push({
         position: new THREE.Vector3(
@@ -300,37 +330,56 @@ export class FloorPlanThreeJs {
         elem: floorPlanMesh.label,
       });
       this.labelsContainer.appendChild(floorPlanMesh.label);
-      console.log("floorPlanMesh", floorPlanMesh);
       this.scene.add(floorPlanMesh);
     });
   }
 
   private updateLabels() {
-    console.log("updateLabels");
     if (!this.labels.length) {
       return;
     }
-    this.normalMatrix.getNormalMatrix(this.camera.matrixWorldInverse);
+
     // get the camera's position
     this.camera.getWorldPosition(this.cameraPosition);
-    this.labels.forEach((label) => {
-      this.tempV.copy(label.position);
-      this.tempV.applyMatrix3(this.normalMatrix);
-      this.cameraToPoint.copy(label.position);
-      this.cameraToPoint
-        .applyMatrix4(this.camera.matrixWorldInverse)
-        .normalize();
+
+    for (let label of this.labels) {
+      if (label.area < this.settings.minArea) {
+        label.elem.style.display = "none";
+        continue;
+      }
+
+      // hide label if it is area less that provided visible area by 1 zoom point
+      if (label.area * this.camera.zoom < this.settings.areaPerZoom) {
+        label.elem.style.display = "none";
+        continue;
+      }
 
       this.tempV.copy(label.position);
       this.tempV.project(this.camera);
+
+      // hide label if it is not in camera viewport x : (-1, 1), y : (-1 , 1)
+      if (
+        this.tempV.x > 1 ||
+        this.tempV.x < -1 ||
+        this.tempV.y > 1 ||
+        this.tempV.y < -1
+      ) {
+        label.elem.style.display = "none";
+        continue;
+      }
+
+      label.elem.style.display = "";
 
       // convert the normalized position to CSS coordinates
       const x = (this.tempV.x * 0.5 + 0.5) * this.canvasContainer.clientWidth;
       const y = (this.tempV.y * -0.5 + 0.5) * this.canvasContainer.clientHeight;
 
-      console.log("cameraToPoint", this.cameraToPoint);
-      label.elem.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px)`;
-    });
+      label.elem.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px) scale(${this.camera.zoom}, ${this.camera.zoom})`;
+      //@ts-ignore
+      label.elem.firstChild.style.transform = `scale(${1 / this.camera.zoom}, ${
+        1 / this.camera.zoom
+      })`;
+    }
   }
 
   private getContainerSizes(): IContainerSizes {
@@ -398,7 +447,7 @@ export class FloorPlanThreeJs {
     }
 
     const hoveredGroup = intersects.find(
-      (obj) => obj.object.parent instanceof FloorPlanItem
+      (obj) => obj.object instanceof FloorPlanItem
     );
 
     if (!hoveredGroup && this.hoveredItem) {
@@ -409,7 +458,7 @@ export class FloorPlanThreeJs {
     }
 
     if (hoveredGroup && !this.hoveredItem) {
-      this.hoveredItem = hoveredGroup.object.parent as FloorPlanItem;
+      this.hoveredItem = hoveredGroup.object as FloorPlanItem;
       this.hoveredItem.onMouseEnter();
       this.render();
       return;
@@ -418,10 +467,10 @@ export class FloorPlanThreeJs {
     if (
       hoveredGroup &&
       this.hoveredItem &&
-      this.hoveredItem.uuid !== hoveredGroup.object.parent?.uuid
+      this.hoveredItem.uuid !== hoveredGroup.object.uuid
     ) {
       this.hoveredItem.onMouseLeave();
-      this.hoveredItem = hoveredGroup.object.parent as FloorPlanItem;
+      this.hoveredItem = hoveredGroup.object as FloorPlanItem;
       this.hoveredItem.onMouseEnter();
       this.render();
       return;
