@@ -5,6 +5,7 @@ import { Spinner } from "@/components/Spinner";
 import { useLoadTexture } from "@/floorPlan/hooks";
 import { getPreparedHall } from "@/floorPlan/helpers/getPreparedHall";
 import { hallDataApi } from "@/floorPlan/mock/hall";
+import { directionDataApi } from "@/floorPlan/mock/direction";
 
 interface IHallFloorPlanProps {
   id: string;
@@ -18,6 +19,15 @@ export const HallFloorPlan: FC<IHallFloorPlanProps> = ({ id }) => {
     loading: textureLoading,
     error: textureError,
   } = useLoadTexture(backgroundImage);
+
+  const handleGetDirectionClick = () => {
+    if (!floorPlanRef.current) {
+      return;
+    }
+    const { path } = directionDataApi;
+    console.log("get way", path);
+    floorPlanRef.current?.displayDirection(path);
+  };
 
   useEffect(() => {
     if (!texture) {
@@ -48,6 +58,15 @@ export const HallFloorPlan: FC<IHallFloorPlanProps> = ({ id }) => {
 
   return (
     <div className="w-full h-full flex flex-col">
+      <div id="direction" className="bg-blue-600 text-white p-2 mb-2">
+        Click on the button to get direction from B147 to K23
+        <button
+          className="bg-white text-blue-600 p-2 rounded-4 ml-2"
+          onClick={handleGetDirectionClick}
+        >
+          Get direction
+        </button>
+      </div>
       <div
         id="floorPlan"
         className="w-full relative floorPlan-height overflow-hidden"

@@ -1,3 +1,5 @@
+import { TCoords } from "@/floorPlan/types/helpers";
+
 export interface IPlaceDataApi {
   place: IPlaceApi;
 }
@@ -56,4 +58,12 @@ export interface ISector {
   visited: boolean;
   categories: any[];
   exhibitors: any[];
+}
+
+export interface IDirectionDataApi {
+  error: boolean;
+  message: string;
+  path: TCoords[];
+  distances: number[];
+  degrees: number[];
 }

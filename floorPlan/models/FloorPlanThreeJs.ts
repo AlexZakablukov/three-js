@@ -9,7 +9,10 @@ import {
   IFloorPlanItemOptions,
 } from "../types/floorPlan";
 import { IFloorPlanItem } from "../types/prepared";
+import { TCoords } from "../types/helpers";
+
 import { FloorPlanItem } from "./FloorPlanItem";
+import { FloorPlanDirection } from "@/floorPlan/models/FloorPlanDirection";
 
 CameraControls.install({ THREE });
 
@@ -53,6 +56,8 @@ export class FloorPlanThreeJs {
     areaPerZoom: 300,
     maxZoom: 50,
   };
+
+  private direction?: FloorPlanDirection;
 
   private windowResizeHandler: () => void;
 
@@ -132,6 +137,7 @@ export class FloorPlanThreeJs {
       0,
       10
     );
+    // this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
     this.camera.position.set(0, 0, 5);
   }
 
@@ -237,6 +243,15 @@ export class FloorPlanThreeJs {
     window.removeEventListener("resize", this.windowResizeHandler, false);
   }
 
+  public displayDirection(path: TCoords[]) {
+    const { width, height } = this.getContainerSizes();
+    const resolution = new THREE.Vector2(width, height);
+    const direction = new FloorPlanDirection(path, resolution);
+    this.direction = direction;
+    this.scene.add(direction);
+    this.render();
+  }
+
   private cleanMaterial(material: THREE.Material) {
     material.dispose();
 
@@ -267,57 +282,6 @@ export class FloorPlanThreeJs {
   }
 
   private renderItems(items: IFloorPlanItem[], options: IFloorPlanItemOptions) {
-    // const geometries = [];
-    // items.forEach((item) => {
-    //   const { coords, params, data } = item;
-    //   if (coords && params) {
-    //     const shape = new THREE.Shape();
-    //     shape.moveTo(coords[0][0], -coords[0][1]);
-    //     for (let i = 1; i < coords.length; i++) {
-    //       shape.lineTo(coords[i][0], -coords[i][1]);
-    //     }
-    //     shape.closePath();
-    //
-    //     const geometry = new THREE.ShapeGeometry(shape);
-    //
-    //     const rgb = [
-    //       params.bgColor?.r ?? 0,
-    //       params.bgColor?.g ?? 0,
-    //       params.bgColor?.b ?? 0,
-    //     ];
-    //
-    //     // make an array to store colors for each vertex
-    //     const numVerts = geometry.getAttribute("position").count;
-    //     console.log({ numVerts });
-    //     const itemSize = 3; // r, g, b
-    //     const colors = new Uint8Array(itemSize * numVerts);
-    //
-    //     // copy the color into the colors array for each vertex
-    //     colors.forEach((v, ndx) => {
-    //       colors[ndx] = rgb[ndx % 3];
-    //     });
-    //
-    //     const normalized = true;
-    //     const colorAttrib = new THREE.BufferAttribute(
-    //       colors,
-    //       itemSize,
-    //       normalized
-    //     );
-    //     geometry.setAttribute("color", colorAttrib);
-    //
-    //     geometries.push(geometry);
-    //   }
-    // });
-    // const mergedGeometry = BufferGeometryUtils.mergeGeometries(
-    //   geometries,
-    //   false
-    // );
-    // const material = new THREE.MeshBasicMaterial({
-    //   vertexColors: true,
-    // });
-    // const mesh = new THREE.Mesh(mergedGeometry, material);
-    // this.scene.add(mesh);
-
     items.forEach((item) => {
       if (!item.coords || !item.params) {
         return;
