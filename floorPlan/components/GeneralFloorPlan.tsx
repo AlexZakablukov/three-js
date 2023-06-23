@@ -27,9 +27,6 @@ export const GeneralFloorPlan = () => {
   );
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
     if (!texture) {
       return;
     }

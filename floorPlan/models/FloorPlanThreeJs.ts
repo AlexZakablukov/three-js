@@ -176,6 +176,9 @@ export class FloorPlanThreeJs {
     this.controls.draggingSmoothTime = 0;
     this.controls.mouseButtons.left = CameraControls.ACTION.TRUCK;
     this.controls.mouseButtons.right = CameraControls.ACTION.ZOOM;
+    this.controls.touches.one = CameraControls.ACTION.TOUCH_TRUCK;
+    this.controls.touches.two = CameraControls.ACTION.TOUCH_ZOOM;
+    this.controls.touches.three = CameraControls.ACTION.TOUCH_DOLLY;
 
     // const { width, height } = this.getContainerSizes();
     // calculate minZoom to contain bgImage and also increase a bit by * 0.7
