@@ -244,12 +244,18 @@ export class FloorPlanThreeJs {
   }
 
   public displayDirection(path: TCoords[]) {
+    if (this.direction) {
+      this.direction.stopAnimate();
+    }
     const { width, height } = this.getContainerSizes();
     const resolution = new THREE.Vector2(width, height);
-    const direction = new FloorPlanDirection(path, resolution);
+    const direction = new FloorPlanDirection(
+      path,
+      resolution,
+      this.render.bind(this)
+    );
     this.direction = direction;
     this.scene.add(direction);
-    this.render();
   }
 
   private cleanMaterial(material: THREE.Material) {
