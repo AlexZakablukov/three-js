@@ -213,7 +213,10 @@ export class FloorPlanThreeJs {
       this.onPointerLeave.bind(this)
     );
 
-    this.renderer.domElement.addEventListener("click", this.onClick.bind(this));
+    this.renderer.domElement.addEventListener(
+      "click touchend",
+      this.onClick.bind(this)
+    );
   }
 
   public animate() {
