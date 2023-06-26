@@ -5,7 +5,7 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./examples/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./floorplan/**/*.{js,ts,jsx,tsx,mdx}",
+    "./floorPlan/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {},

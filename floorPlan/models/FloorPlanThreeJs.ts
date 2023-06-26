@@ -213,6 +213,11 @@ export class FloorPlanThreeJs {
       this.onPointerLeave.bind(this)
     );
 
+    this.renderer.domElement.addEventListener(
+      "touchstart",
+      this.onTouchStart.bind(this)
+    );
+
     this.renderer.domElement.addEventListener("click", this.onClick.bind(this));
   }
 
@@ -390,6 +395,27 @@ export class FloorPlanThreeJs {
     this.intersectObjects(intersects);
   }
 
+  private onTouchStart(event: TouchEvent) {
+    const { width, height, offsetTop, offsetLeft } = this.getContainerSizes();
+
+    this.mouse.x = ((event.touches[0].clientX - offsetLeft) / width) * 2 - 1;
+    this.mouse.y = -((event.touches[0].clientY - offsetTop) / height) * 2 + 1;
+
+    this.raycaster && this.raycaster.setFromCamera(this.mouse, this.camera);
+
+    const intersects = this.raycaster.intersectObjects(this.scene.children);
+
+    const clickedItem = intersects.find(
+      (obj) => obj.object instanceof FloorPlanItem
+    );
+
+    if (clickedItem) {
+      const floorPlanItem = clickedItem.object as FloorPlanItem;
+      floorPlanItem.onClick();
+    }
+    this.render();
+  }
+
   private onPointerLeave() {
     if (this.hoveredItem) {
       this.hoveredItem.onMouseLeave();
@@ -419,31 +445,31 @@ export class FloorPlanThreeJs {
       return;
     }
 
-    const hoveredGroup = intersects.find(
+    const hoveredItem = intersects.find(
       (obj) => obj.object instanceof FloorPlanItem
     );
 
-    if (!hoveredGroup && this.hoveredItem) {
+    if (!hoveredItem && this.hoveredItem) {
       this.hoveredItem.onMouseLeave();
       this.hoveredItem = null;
       this.render();
       return;
     }
 
-    if (hoveredGroup && !this.hoveredItem) {
-      this.hoveredItem = hoveredGroup.object as FloorPlanItem;
+    if (hoveredItem && !this.hoveredItem) {
+      this.hoveredItem = hoveredItem.object as FloorPlanItem;
       this.hoveredItem.onMouseEnter();
       this.render();
       return;
     }
 
     if (
-      hoveredGroup &&
+      hoveredItem &&
       this.hoveredItem &&
-      this.hoveredItem.uuid !== hoveredGroup.object.uuid
+      this.hoveredItem.uuid !== hoveredItem.object.uuid
     ) {
       this.hoveredItem.onMouseLeave();
-      this.hoveredItem = hoveredGroup.object as FloorPlanItem;
+      this.hoveredItem = hoveredItem.object as FloorPlanItem;
       this.hoveredItem.onMouseEnter();
       this.render();
       return;
