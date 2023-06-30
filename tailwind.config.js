@@ -6,6 +6,7 @@ module.exports = {
     "./examples/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./floorPlan/**/*.{js,ts,jsx,tsx,mdx}",
+    "./floorPlanV2/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {},

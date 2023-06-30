@@ -19,6 +19,10 @@ const LINKS = [
     href: Routes.ExpoFloorPlan,
     text: "Expo Floorplan",
   },
+  {
+    href: Routes.FloorPlanV2,
+    text: "Floorplan v2",
+  },
 ];
 
 export const Nav: FC = () => {

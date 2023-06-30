@@ -427,7 +427,7 @@ export class FloorPlanThreeJs {
   }
 
   private onClick() {
-    if (this.hoveredItem) {
+    if (this.hoveredItem && !this.controls.currentAction) {
       this.hoveredItem.onClick();
       this.render();
     }
