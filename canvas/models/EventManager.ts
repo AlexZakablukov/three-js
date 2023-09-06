@@ -1,10 +1,14 @@
 import { IEventManager, IPathPlanner } from "@/canvas/types/models";
+import { IEntity } from "@/canvas/types/entities";
+import { getCoords } from "@/canvas/helpers";
 
 interface IEventManagerProps {
   pathPlanner: IPathPlanner;
 }
 
 class EventManager implements IEventManager {
+  public hoveredEntity: IEntity | null = null;
+
   private pathPlanner: IPathPlanner;
 
   constructor({ pathPlanner }: IEventManagerProps) {
@@ -42,12 +46,32 @@ class EventManager implements IEventManager {
   };
 
   private onPointerMove = (event: PointerEvent) => {
+    this.checkHover(event);
+
     const activeTool = this.pathPlanner.tool;
 
     if (activeTool) {
       activeTool.onPointerMove(event);
     }
   };
+
+  private checkHover(event: PointerEvent) {
+    const coords = getCoords(event);
+    const entity = this.pathPlanner.storageManager.getEntityByCoords(coords);
+    if (!entity) {
+      if (this.hoveredEntity) {
+        this.hoveredEntity.isHovered = false;
+        this.hoveredEntity = null;
+        this.pathPlanner.render();
+      }
+      return;
+    }
+    if (!this.hoveredEntity || this.hoveredEntity !== entity) {
+      this.hoveredEntity = entity;
+      this.hoveredEntity.isHovered = true;
+      this.pathPlanner.render();
+    }
+  }
 
   public destroy() {
     const canvas = this.pathPlanner.canvas;

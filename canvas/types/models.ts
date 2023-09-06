@@ -7,6 +7,7 @@ export interface IPathPlanner {
   ctx: CanvasRenderingContext2D;
   tool: ITool | null;
   storageManager: IStorageManager;
+  eventManager: IEventManager;
 
   setTool: (tool: Tools) => void;
   render: () => void;
@@ -18,6 +19,8 @@ export interface IResizeManager {
 }
 
 export interface IEventManager {
+  hoveredEntity: IEntity | null;
+
   destroy: () => void;
 }
 

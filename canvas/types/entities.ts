@@ -4,6 +4,7 @@ export enum Entities {
 }
 
 export interface IEntity {
+  // id: string;
   type: Entities;
   isHovered: boolean;
   path: Path2D;

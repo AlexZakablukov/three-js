@@ -26,9 +26,9 @@ class PathPlanner implements IPathPlanner {
   public tool: ITool | null = null;
 
   public storageManager: IStorageManager;
+  public eventManager: IEventManager;
 
   private resizeManager: IResizeManager;
-  private eventManager: IEventManager;
 
   constructor({ canvasId }: IPathPlannerProps) {
     this.init(canvasId);

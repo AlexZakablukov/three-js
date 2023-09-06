@@ -1,6 +1,8 @@
 import { ILineTool, Tools } from "@/canvas/types/tools";
 import { IPathPlanner } from "@/canvas/types/models";
 import { getCoords } from "@/canvas/helpers";
+import { Entities, IEntity, IPoint } from "@/canvas/types/entities";
+import Line from "@/canvas/entities/Line";
 
 interface ILineToolProps {
   pathPlanner: IPathPlanner;
@@ -9,60 +11,60 @@ interface ILineToolProps {
 class LineTool implements ILineTool {
   public type: Tools = Tools.Line;
 
-  private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
+  private pathPlanner: IPathPlanner;
+
   private isPointerDown: boolean = false;
-  private startX: number;
-  private startY: number;
-  private endX: number;
-  private endY: number;
-  private saved;
+
+  private startPoint: IPoint;
+  private endPoint: IPoint;
 
   constructor({ pathPlanner }: ILineToolProps) {
-    this.canvas = pathPlanner.canvas;
-    this.ctx = pathPlanner.ctx;
+    this.pathPlanner = pathPlanner;
   }
 
   public onPointerDown = (event: PointerEvent) => {
-    this.isPointerDown = true;
-    if (!event.target) {
+    const hoveredEntity = this.pathPlanner.eventManager.hoveredEntity;
+    if (
+      !hoveredEntity ||
+      hoveredEntity.type !== Entities.Point ||
+      !event.target
+    ) {
       return;
     }
-    const { x, y } = getCoords(event);
-
-    this.startX = x;
-    this.startY = y;
-
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.startX, this.startY);
-    this.saved = this.canvas.toDataURL();
+    this.isPointerDown = true;
+    this.startPoint = hoveredEntity as IPoint;
   };
 
   public onPointerUp = (event: PointerEvent) => {
     this.isPointerDown = false;
+    const hoveredEntity = this.pathPlanner.eventManager.hoveredEntity;
+    if (
+      !hoveredEntity ||
+      hoveredEntity.type !== Entities.Point ||
+      hoveredEntity === this.startPoint ||
+      !event.target
+    ) {
+      return;
+    }
+    this.endPoint = hoveredEntity as IPoint;
+    const line = new Line({
+      startPoint: this.startPoint,
+      endPoint: this.endPoint,
+      lineWidth: 5,
+    });
+    this.pathPlanner.storageManager.addEntity(line);
+    line.render(this.pathPlanner.ctx);
   };
 
   public onPointerMove = (event: PointerEvent) => {
     if (this.isPointerDown) {
       const { x, y } = getCoords(event);
-      this.endX = x;
-      this.endY = y;
-      this.draw();
+      console.log("drag");
+      this.draw(x, y);
     }
   };
 
-  private draw() {
-    const img = new Image();
-    img.src = this.saved;
-    img.onload = () => {
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.startX, this.startY);
-      this.ctx.lineTo(this.endX, this.endY);
-      this.ctx.stroke();
-    };
-  }
+  private draw(x, y) {}
 }
 
 export default LineTool;
