@@ -1,7 +1,7 @@
 export enum Tools {
   Point = "Point",
-  Select = "Select",
   Line = "Line",
+  Move = "Move",
 }
 
 export interface ITool {
@@ -13,7 +13,7 @@ export interface ITool {
 }
 
 export interface ILineTool extends ITool {
-  draw: (x: number, y: number) => void;
+  draw: () => void;
 }
 
 export interface IPointTool extends ITool {

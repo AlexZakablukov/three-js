@@ -6,7 +6,7 @@ import {
 } from "@/canvas/types/models";
 import { Tools, ITool } from "@/canvas/types/tools";
 
-import SelectTool from "@/canvas/tools/SelectTool";
+import MoveTool from "@/canvas/tools/MoveTool";
 import LineTool from "@/canvas/tools/LineTool";
 import PointTool from "@/canvas/tools/PointTool";
 
@@ -92,6 +92,11 @@ class PathPlanner implements IPathPlanner {
     entities.forEach((entity) => entity.render(this.ctx));
   };
 
+  public clear = () => {
+    this.storageManager.setEntities([]);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  };
+
   public destroy = () => {
     this.resizeManager.destroy();
     this.eventManager.destroy();
@@ -105,8 +110,8 @@ class PathPlanner implements IPathPlanner {
       case Tools.Line:
         this.tool = new LineTool({ pathPlanner: this });
         break;
-      case Tools.Select:
-        this.tool = new SelectTool({ pathPlanner: this });
+      case Tools.Move:
+        this.tool = new MoveTool({ pathPlanner: this });
         break;
       default:
         this.tool = null;

@@ -14,7 +14,7 @@ const TOOLS = [
     type: Tools.Line,
   },
   {
-    type: Tools.Select,
+    type: Tools.Move,
   },
 ];
 
@@ -31,6 +31,10 @@ export default function Page() {
     pathPlannerRef.current?.setTool(tool);
   };
 
+  const clearCanvas = () => {
+    pathPlannerRef.current?.clear();
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex gap-2">
@@ -45,6 +49,12 @@ export default function Page() {
             </button>
           );
         })}
+        <button
+          className="bg-green-700 text-white p-2 rounded-md text-center mb-2"
+          onClick={clearCanvas}
+        >
+          Clear
+        </button>
       </div>
       <div className="flex-grow">
         <canvas id={CANVAS_ID} />

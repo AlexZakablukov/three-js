@@ -1,4 +1,5 @@
 import { Entities, ILine, IPoint } from "@/canvas/types/entities";
+import { v4 as uuid } from "uuid";
 
 interface ILineProps {
   startPoint: IPoint;
@@ -11,6 +12,8 @@ class Line implements ILine {
   public endPoint: IPoint;
   public lineWidth: number;
   public isHovered: boolean = false;
+
+  public readonly id = uuid();
   public readonly type = Entities.Line;
 
   public path: Path2D = new Path2D();
@@ -22,13 +25,13 @@ class Line implements ILine {
   }
 
   public render = (ctx: CanvasRenderingContext2D) => {
-    ctx.beginPath();
+    this.path = new Path2D();
     this.path.moveTo(this.startPoint.x, this.startPoint.y);
     this.path.lineTo(this.endPoint.x, this.endPoint.y);
     ctx.strokeStyle = this.isHovered ? "red" : "black";
     ctx.lineWidth = this.lineWidth;
     ctx.stroke(this.path);
-    ctx.closePath();
+    this.path.closePath();
   };
 }
 

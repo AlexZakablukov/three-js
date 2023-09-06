@@ -1,4 +1,5 @@
 import { Entities, IPoint } from "@/canvas/types/entities";
+import { v4 as uuid } from "uuid";
 
 interface IPointProps {
   x: number;
@@ -11,6 +12,8 @@ class Point implements IPoint {
   public y: number;
   public radius: number;
   public isHovered: boolean = false;
+
+  public readonly id = uuid();
   public readonly type = Entities.Point;
 
   public path: Path2D = new Path2D();
@@ -22,11 +25,11 @@ class Point implements IPoint {
   }
 
   public render = (ctx: CanvasRenderingContext2D) => {
-    ctx.beginPath();
+    this.path = new Path2D();
     this.path.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
     ctx.fillStyle = this.isHovered ? "red" : "black";
     ctx.fill(this.path);
-    ctx.closePath();
+    this.path.closePath();
   };
 }
 

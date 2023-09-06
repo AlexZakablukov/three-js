@@ -39,7 +39,6 @@ class PointTool implements IPointTool {
     });
 
     this.storage.addEntity(point);
-
     point.render(this.ctx);
   }
 }

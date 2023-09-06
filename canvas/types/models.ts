@@ -11,6 +11,7 @@ export interface IPathPlanner {
 
   setTool: (tool: Tools) => void;
   render: () => void;
+  clear: () => void;
   destroy: () => void;
 }
 
@@ -25,9 +26,11 @@ export interface IEventManager {
 }
 
 export interface IStorageManager {
-  entities: IEntity[];
+  entities: Map<string, IEntity>;
   getEntities: () => IEntity[];
+  getEntityById: (id: string) => IEntity | null;
   getEntityByCoords: (coords: ICoords) => IEntity | null;
   setEntities: (entities: IEntity[]) => void;
   addEntity: (entity: IEntity) => void;
+  removeEntity: (id: string) => boolean;
 }
