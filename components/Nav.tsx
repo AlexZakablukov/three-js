@@ -23,6 +23,14 @@ const LINKS = [
     href: Routes.FloorPlanV2,
     text: "Floorplan v2",
   },
+  {
+    href: Routes.Background,
+    text: "Background",
+  },
+  {
+    href: Routes.Canvas,
+    text: "Canvas",
+  },
 ];
 
 export const Nav: FC = () => {

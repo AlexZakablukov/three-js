@@ -4,4 +4,6 @@ export enum Routes {
   RayCasterSpheres = "/ray-caster-spheres",
   ExpoFloorPlan = "/floorplan",
   FloorPlanV2 = "/floorplanV2",
+  Background = "/background",
+  Canvas = "/canvas",
 }
