@@ -1,6 +1,5 @@
 import { ITool, Tools } from "@/canvas/types/tools";
-import { IEntity } from "@/canvas/types/entities";
-import { ICoords } from "@/canvas/types/helpers";
+import { IConnection, IPoint, ILine } from "@/canvas/types/entities";
 
 export interface IPathPlanner {
   canvas: HTMLCanvasElement;
@@ -9,6 +8,8 @@ export interface IPathPlanner {
   storageManager: IStorageManager;
   eventManager: IEventManager;
 
+  undo: () => void;
+  redo: () => void;
   setTool: (tool: Tools) => void;
   render: () => void;
   clear: () => void;
@@ -20,17 +21,34 @@ export interface IResizeManager {
 }
 
 export interface IEventManager {
-  hoveredEntity: IEntity | null;
+  hoveredPoint: IPoint | null;
+  hoveredLine: ILine | null;
+  isCheckHoveredPoint: boolean;
+  isCheckHoveredLine: boolean;
 
   destroy: () => void;
 }
 
+export interface IStorageState {
+  points: Map<string, IPoint>;
+  connections: Map<string, IConnection>;
+}
+
 export interface IStorageManager {
-  entities: Map<string, IEntity>;
-  getEntities: () => IEntity[];
-  getEntityById: (id: string) => IEntity | null;
-  getEntityByCoords: (coords: ICoords) => IEntity | null;
-  setEntities: (entities: IEntity[]) => void;
-  addEntity: (entity: IEntity) => void;
-  removeEntity: (id: string) => boolean;
+  history: IStorageState[];
+  points: IPoint[];
+  connections: IConnection[];
+  lines: ILine[];
+
+  undo(): void;
+  redo(): void;
+  saveToHistory(): void;
+  generateLines(): void;
+  getPointById(id: string): IPoint | null;
+  addPoint(point: IPoint): void;
+  removePoint(id: string): void;
+  getConnectionById(id: string): IConnection | null;
+  addConnection(connection: IConnection): void;
+  removeConnection(id: string): void;
+  clear(): void;
 }

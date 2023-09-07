@@ -27,43 +27,42 @@ class LineTool implements ILineTool {
   }
 
   public onPointerDown = (event: PointerEvent) => {
-    this.isPointerDown = true;
-    const { x, y } = getCoords(event);
-    const hoveredEntity = this.pathPlanner.eventManager.hoveredEntity;
-    if (!hoveredEntity || hoveredEntity.type !== Entities.Point) {
-      this.isTempStartPoint = true;
-      this.startPoint = new Point({ x, y, radius: 10 });
-      this.pathPlanner.storageManager.addEntity(this.startPoint);
-    } else {
-      this.isTempStartPoint = false;
-      this.startPoint = hoveredEntity as IPoint;
-    }
+    // this.isPointerDown = true;
+    // const { x, y } = getCoords(event);
+    // const hoveredEntity = this.pathPlanner.eventManager.hoveredEntity;
+    // if (!hoveredEntity || hoveredEntity.type !== Entities.Point) {
+    //   this.isTempStartPoint = true;
+    //   this.startPoint = new Point({ x, y, radius: 10 });
+    //   this.pathPlanner.storageManager.addEntity(this.startPoint);
+    // } else {
+    //   this.isTempStartPoint = false;
+    //   this.startPoint = hoveredEntity as IPoint;
+    // }
   };
 
   public onPointerUp = (event: PointerEvent) => {
-    this.isPointerDown = false;
-    const hoveredEntity = this.pathPlanner.eventManager.hoveredEntity;
-
-    if (hoveredEntity && hoveredEntity.id === this.startPoint?.id) {
-      this.isTempStartPoint &&
-        this.startPoint &&
-        this.pathPlanner.storageManager.removeEntity(this.startPoint.id);
-
-      this.line && this.pathPlanner.storageManager.removeEntity(this.line.id);
-
-      this.endPoint &&
-        this.pathPlanner.storageManager.removeEntity(this.endPoint.id);
-    } else if (this.isTempEndPoint && this.endPoint) {
-      this.pathPlanner.storageManager.addEntity(this.endPoint);
-      this.endPoint.render(this.pathPlanner.ctx);
-    }
-
-    this.isTempStartPoint = false;
-    this.startPoint = null;
-    this.isTempEndPoint = false;
-    this.endPoint = null;
-    this.line = null;
-
+    // this.isPointerDown = false;
+    // const hoveredEntity = this.pathPlanner.eventManager.hoveredEntity;
+    //
+    // if (hoveredEntity && hoveredEntity.id === this.startPoint?.id) {
+    //   this.isTempStartPoint &&
+    //     this.startPoint &&
+    //     this.pathPlanner.storageManager.removeEntity(this.startPoint.id);
+    //
+    //   this.line && this.pathPlanner.storageManager.removeEntity(this.line.id);
+    //
+    //   this.endPoint &&
+    //     this.pathPlanner.storageManager.removeEntity(this.endPoint.id);
+    // } else if (this.isTempEndPoint && this.endPoint) {
+    //   this.pathPlanner.storageManager.addEntity(this.endPoint);
+    //   this.endPoint.render(this.pathPlanner.ctx);
+    // }
+    //
+    // this.isTempStartPoint = false;
+    // this.startPoint = null;
+    // this.isTempEndPoint = false;
+    // this.endPoint = null;
+    // this.line = null;
     // console.log({
     //   start: this.startPoint,
     //   end: this.endPoint,
@@ -71,28 +70,28 @@ class LineTool implements ILineTool {
   };
 
   public onPointerMove = (event: PointerEvent) => {
-    if (this.isPointerDown && this.startPoint) {
-      const { x, y } = getCoords(event);
-      const hoveredEntity = this.pathPlanner.eventManager.hoveredEntity;
-
-      if (this.isTempEndPoint && this.endPoint) {
-        this.endPoint.x = x;
-        this.endPoint.y = y;
-      } else {
-        this.isTempEndPoint = true;
-        this.endPoint = new Point({ x, y, radius: 10 });
-      }
-
-      if (
-        hoveredEntity &&
-        hoveredEntity.type === Entities.Point &&
-        hoveredEntity.id !== this.startPoint.id
-      ) {
-        this.isTempEndPoint = false;
-        this.endPoint = hoveredEntity as IPoint;
-      }
-      this.draw();
-    }
+    // if (this.isPointerDown && this.startPoint) {
+    //   const { x, y } = getCoords(event);
+    //   const hoveredEntity = this.pathPlanner.eventManager.hoveredEntity;
+    //
+    //   if (this.isTempEndPoint && this.endPoint) {
+    //     this.endPoint.x = x;
+    //     this.endPoint.y = y;
+    //   } else {
+    //     this.isTempEndPoint = true;
+    //     this.endPoint = new Point({ x, y, radius: 10 });
+    //   }
+    //
+    //   if (
+    //     hoveredEntity &&
+    //     hoveredEntity.type === Entities.Point &&
+    //     hoveredEntity.id !== this.startPoint.id
+    //   ) {
+    //     this.isTempEndPoint = false;
+    //     this.endPoint = hoveredEntity as IPoint;
+    //   }
+    //   this.draw();
+    // }
   };
 
   private draw() {
@@ -101,22 +100,22 @@ class LineTool implements ILineTool {
     //   end: this.endPoint,
     //   storage: this.pathPlanner.storageManager.getEntities(),
     // });
-    if (!this.startPoint || !this.endPoint) {
-      return;
-    }
-    this.pathPlanner.ctx.beginPath();
-    this.pathPlanner.ctx.moveTo(this.startPoint.x, this.startPoint.y);
-    if (this.line) {
-      this.line.endPoint = this.endPoint;
-    } else {
-      this.line = new Line({
-        startPoint: this.startPoint,
-        endPoint: this.endPoint,
-        lineWidth: 5,
-      });
-      this.pathPlanner.storageManager.addEntity(this.line);
-    }
-    this.pathPlanner.render();
+    // if (!this.startPoint || !this.endPoint) {
+    //   return;
+    // }
+    // this.pathPlanner.ctx.beginPath();
+    // this.pathPlanner.ctx.moveTo(this.startPoint.x, this.startPoint.y);
+    // if (this.line) {
+    //   this.line.endPoint = this.endPoint;
+    // } else {
+    //   this.line = new Line({
+    //     startPoint: this.startPoint,
+    //     endPoint: this.endPoint,
+    //     lineWidth: 5,
+    //   });
+    //   this.pathPlanner.storageManager.addEntity(this.line);
+    // }
+    // this.pathPlanner.render();
   }
 }
 

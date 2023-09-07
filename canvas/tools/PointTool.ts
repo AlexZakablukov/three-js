@@ -1,7 +1,9 @@
 import { IPointTool, Tools } from "@/canvas/types/tools";
-import { IPathPlanner, IStorageManager } from "@/canvas/types/models";
+import { IPathPlanner } from "@/canvas/types/models";
 import { getCoords } from "@/canvas/helpers";
 import Point from "@/canvas/entities/Point";
+import { v4 as uuid } from "uuid";
+import { event } from "next/dist/build/output/log";
 
 interface ILineToolProps {
   pathPlanner: IPathPlanner;
@@ -10,36 +12,28 @@ interface ILineToolProps {
 class PointTool implements IPointTool {
   public type: Tools = Tools.Point;
 
-  private ctx: CanvasRenderingContext2D;
-  private storage: IStorageManager;
+  private pathPlanner: IPathPlanner;
 
   constructor({ pathPlanner }: ILineToolProps) {
-    this.ctx = pathPlanner.ctx;
-    this.storage = pathPlanner.storageManager;
+    this.pathPlanner = pathPlanner;
+    this.pathPlanner.eventManager.isCheckHoveredPoint = false;
+    this.pathPlanner.eventManager.isCheckHoveredLine = true;
   }
 
   public onPointerDown = (event: PointerEvent) => {
-    if (!event.target) {
-      return;
-    }
     const { x, y } = getCoords(event);
-
-    this.draw(x, y, 10);
+    this.draw(x, y);
   };
 
-  public onPointerUp = () => {};
-
-  public onPointerMove = () => {};
-
-  private draw(x, y, radius) {
+  private draw(x, y) {
     const point = new Point({
+      id: uuid(),
       x,
       y,
-      radius,
     });
 
-    this.storage.addEntity(point);
-    point.render(this.ctx);
+    this.pathPlanner.storageManager.addPoint(point);
+    this.pathPlanner.render();
   }
 }
 

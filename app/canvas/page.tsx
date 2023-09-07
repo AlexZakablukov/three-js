@@ -16,6 +16,9 @@ const TOOLS = [
   {
     type: Tools.Move,
   },
+  {
+    type: Tools.Remove,
+  },
 ];
 
 export default function Page() {
@@ -35,6 +38,14 @@ export default function Page() {
     pathPlannerRef.current?.clear();
   };
 
+  const undo = () => {
+    pathPlannerRef.current?.undo();
+  };
+
+  const redo = () => {
+    pathPlannerRef.current?.redo();
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex gap-2">
@@ -49,6 +60,18 @@ export default function Page() {
             </button>
           );
         })}
+        <button
+          className="bg-green-500 text-white p-2 rounded-md text-center mb-2"
+          onClick={undo}
+        >
+          Undo
+        </button>
+        <button
+          className="bg-green-600 text-white p-2 rounded-md text-center mb-2"
+          onClick={redo}
+        >
+          Redo
+        </button>
         <button
           className="bg-green-700 text-white p-2 rounded-md text-center mb-2"
           onClick={clearCanvas}

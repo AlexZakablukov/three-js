@@ -13,8 +13,9 @@ import PointTool from "@/canvas/tools/PointTool";
 import EventManager from "@/canvas/models/EventManager";
 import ResizeManager from "@/canvas/models/ResizeManager";
 import StorageManager from "@/canvas/models/StorageManager";
-import Point from "@/canvas/entities/Point";
-import Line from "@/canvas/entities/Line";
+
+import { points, connections } from "@/canvas/mocks";
+import RemoveTool from "@/canvas/tools/RemoveTool";
 
 interface IPathPlannerProps {
   canvasId: string;
@@ -57,43 +58,41 @@ class PathPlanner implements IPathPlanner {
     this.eventManager = new EventManager({ pathPlanner: this });
     this.storageManager = new StorageManager({
       pathPlanner: this,
-      entities: [
-        new Point({
-          x: 10,
-          y: 10,
-          radius: 10,
-        }),
-        new Point({
-          x: 100,
-          y: 20,
-          radius: 10,
-        }),
-        new Line({
-          startPoint: new Point({
-            x: 100,
-            y: 100,
-            radius: 10,
-          }),
-          endPoint: new Point({
-            x: 200,
-            y: 200,
-            radius: 10,
-          }),
-          lineWidth: 5,
-        }),
-      ],
+      points,
+      connections,
     });
     this.tool = new LineTool({ pathPlanner: this });
   };
 
   public render = () => {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    const entities = this.storageManager.getEntities();
-    entities.forEach((entity) => entity.render(this.ctx));
+
+    this.renderLines();
+    this.renderPoints();
+  };
+
+  private renderPoints = () => {
+    const points = this.storageManager.points;
+    points.forEach((point) => point.render(this.ctx));
+  };
+
+  private renderLines = () => {
+    const lines = this.storageManager.lines;
+    lines.forEach((line) => line.render(this.ctx));
+  };
+
+  public undo = () => {
+    this.storageManager.undo();
+    this.render();
+  };
+
+  public redo = () => {
+    this.storageManager.redo();
+    this.render();
   };
 
   public clear = () => {
-    this.storageManager.setEntities([]);
+    this.storageManager.clear();
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   };
 
@@ -112,6 +111,9 @@ class PathPlanner implements IPathPlanner {
         break;
       case Tools.Move:
         this.tool = new MoveTool({ pathPlanner: this });
+        break;
+      case Tools.Remove:
+        this.tool = new RemoveTool({ pathPlanner: this });
         break;
       default:
         this.tool = null;

@@ -1,13 +1,17 @@
 import { IEventManager, IPathPlanner } from "@/canvas/types/models";
-import { IEntity } from "@/canvas/types/entities";
+import { IPoint, ILine } from "@/canvas/types/entities";
 import { getCoords } from "@/canvas/helpers";
+import { type } from "os";
 
 interface IEventManagerProps {
   pathPlanner: IPathPlanner;
 }
 
 class EventManager implements IEventManager {
-  public hoveredEntity: IEntity | null = null;
+  public hoveredPoint: IPoint | null = null;
+  public hoveredLine: ILine | null = null;
+  public isCheckHoveredPoint: boolean = false;
+  public isCheckHoveredLine: boolean = false;
 
   private pathPlanner: IPathPlanner;
 
@@ -32,7 +36,7 @@ class EventManager implements IEventManager {
   private onPointerDown = (event: PointerEvent) => {
     const activeTool = this.pathPlanner.tool;
 
-    if (activeTool) {
+    if (activeTool && activeTool.onPointerDown) {
       activeTool.onPointerDown(event);
     }
   };
@@ -40,36 +44,114 @@ class EventManager implements IEventManager {
   private onPointerUp = (event: PointerEvent) => {
     const activeTool = this.pathPlanner.tool;
 
-    if (activeTool) {
+    if (activeTool && activeTool.onPointerUp) {
       activeTool.onPointerUp(event);
     }
   };
 
   private onPointerMove = (event: PointerEvent) => {
-    this.checkHover(event);
+    if (this.isCheckHoveredPoint) {
+      this.checkHoveredPoint(event);
+    }
+
+    if (this.isCheckHoveredLine) {
+      this.checkHoveredLine(event);
+    }
 
     const activeTool = this.pathPlanner.tool;
 
-    if (activeTool) {
+    if (activeTool && activeTool.onPointerMove) {
       activeTool.onPointerMove(event);
     }
   };
 
-  private checkHover(event: PointerEvent) {
-    const coords = getCoords(event);
-    const entity = this.pathPlanner.storageManager.getEntityByCoords(coords);
-    if (!entity) {
-      if (this.hoveredEntity) {
-        this.hoveredEntity.isHovered = false;
-        this.hoveredEntity = null;
-        this.pathPlanner.render();
-      }
+  private checkHoveredPoint(event: PointerEvent) {
+    const { x, y } = getCoords(event);
+    const points = this.pathPlanner.storageManager.points;
+    const hoveredPoint = points.find((point) =>
+      this.pathPlanner.ctx.isPointInPath(point.path, x, y)
+    );
+
+    // навелись на ту же самую точку, ничего не делаем
+    if (
+      hoveredPoint &&
+      this.hoveredPoint &&
+      hoveredPoint.id === this.hoveredPoint.id
+    ) {
       return;
     }
-    if (!this.hoveredEntity || this.hoveredEntity !== entity) {
-      this.hoveredEntity = entity;
-      this.hoveredEntity.isHovered = true;
+
+    // никуда не навелись но точка есть, сбрасываем ховер
+    if (!hoveredPoint && this.hoveredPoint) {
+      this.hoveredPoint.isHovered = false;
+      this.hoveredPoint = null;
       this.pathPlanner.render();
+    }
+
+    // навелись на другую точку, сбрасывем ховер для текущей и устанавливаем для новой
+    if (
+      hoveredPoint &&
+      this.hoveredPoint &&
+      hoveredPoint.id !== this.hoveredPoint.id
+    ) {
+      this.hoveredPoint.isHovered = false;
+      hoveredPoint.isHovered = true;
+      this.hoveredPoint = hoveredPoint;
+      this.pathPlanner.render();
+      return;
+    }
+
+    // навелись на точку, устанавливаем ховер
+    if (hoveredPoint && !this.hoveredPoint) {
+      hoveredPoint.isHovered = true;
+      this.hoveredPoint = hoveredPoint;
+      this.pathPlanner.render();
+      return;
+    }
+  }
+
+  private checkHoveredLine(event: PointerEvent) {
+    const { x, y } = getCoords(event);
+    const lines = this.pathPlanner.storageManager.lines;
+    const hoveredLine = lines.find((line) =>
+      this.pathPlanner.ctx.isPointInStroke(line.path, x, y)
+    );
+
+    // навелись на ту же самую линию, ничего не делаем
+    if (
+      hoveredLine &&
+      this.hoveredLine &&
+      hoveredLine.id === this.hoveredLine.id
+    ) {
+      return;
+    }
+
+    // никуда не навелись но линия есть, сбрасываем ховер
+    if (!hoveredLine && this.hoveredLine) {
+      this.hoveredLine.isHovered = false;
+      this.hoveredLine = null;
+      this.pathPlanner.render();
+    }
+
+    // навелись на другую линию, сбрасывем ховер для текущей и устанавливаем для новой
+    if (
+      hoveredLine &&
+      this.hoveredLine &&
+      hoveredLine.id !== this.hoveredLine.id
+    ) {
+      this.hoveredLine.isHovered = false;
+      hoveredLine.isHovered = true;
+      this.hoveredLine = hoveredLine;
+      this.pathPlanner.render();
+      return;
+    }
+
+    // навелись на линию, устанавливаем ховер
+    if (hoveredLine && !this.hoveredLine) {
+      hoveredLine.isHovered = true;
+      this.hoveredLine = hoveredLine;
+      this.pathPlanner.render();
+      return;
     }
   }
 

@@ -14,11 +14,16 @@ export interface IEntity {
 export interface IPoint extends IEntity {
   x: number;
   y: number;
-  radius: number;
 }
 
 export interface ILine extends IEntity {
   startPoint: IPoint;
   endPoint: IPoint;
-  lineWidth: number;
+}
+
+export interface IConnection {
+  id: string;
+  pointIds: [string, string];
+
+  hasPoint: (id: string) => boolean;
 }

@@ -1,35 +1,37 @@
 import { Entities, ILine, IPoint } from "@/canvas/types/entities";
-import { v4 as uuid } from "uuid";
+
+const LINE_WIDTH = 5;
+const STROKE_COLOR = "black";
+const STROKE_HOVER_COLOR = "red";
 
 interface ILineProps {
+  id: string;
   startPoint: IPoint;
   endPoint: IPoint;
-  lineWidth: number;
 }
 
 class Line implements ILine {
   public startPoint: IPoint;
   public endPoint: IPoint;
-  public lineWidth: number;
   public isHovered: boolean = false;
 
-  public readonly id = uuid();
+  public id: string;
   public readonly type = Entities.Line;
 
-  public path: Path2D = new Path2D();
+  public path: Path2D;
 
-  constructor({ startPoint, endPoint, lineWidth }: ILineProps) {
+  constructor({ id, startPoint, endPoint }: ILineProps) {
+    this.id = id;
     this.startPoint = startPoint;
     this.endPoint = endPoint;
-    this.lineWidth = lineWidth;
   }
 
   public render = (ctx: CanvasRenderingContext2D) => {
     this.path = new Path2D();
     this.path.moveTo(this.startPoint.x, this.startPoint.y);
     this.path.lineTo(this.endPoint.x, this.endPoint.y);
-    ctx.strokeStyle = this.isHovered ? "red" : "black";
-    ctx.lineWidth = this.lineWidth;
+    ctx.strokeStyle = this.isHovered ? STROKE_HOVER_COLOR : STROKE_COLOR;
+    ctx.lineWidth = LINE_WIDTH;
     ctx.stroke(this.path);
     this.path.closePath();
   };
