@@ -50,5 +50,7 @@ export interface IStorageManager {
   getConnectionById(id: string): IConnection | null;
   addConnection(connection: IConnection): void;
   removeConnection(id: string): void;
+  addLine(line: ILine): void;
+  removeLine(id: string): void;
   clear(): void;
 }

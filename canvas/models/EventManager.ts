@@ -1,7 +1,6 @@
 import { IEventManager, IPathPlanner } from "@/canvas/types/models";
 import { IPoint, ILine } from "@/canvas/types/entities";
 import { getCoords } from "@/canvas/helpers";
-import { type } from "os";
 
 interface IEventManagerProps {
   pathPlanner: IPathPlanner;
@@ -68,9 +67,11 @@ class EventManager implements IEventManager {
   private checkHoveredPoint(event: PointerEvent) {
     const { x, y } = getCoords(event);
     const points = this.pathPlanner.storageManager.points;
-    const hoveredPoint = points.find((point) =>
-      this.pathPlanner.ctx.isPointInPath(point.path, x, y)
-    );
+    const hoveredPoint = points.find((point) => {
+      if (point.path) {
+        return this.pathPlanner.ctx.isPointInPath(point.path, x, y);
+      }
+    });
 
     // навелись на ту же самую точку, ничего не делаем
     if (
@@ -113,9 +114,11 @@ class EventManager implements IEventManager {
   private checkHoveredLine(event: PointerEvent) {
     const { x, y } = getCoords(event);
     const lines = this.pathPlanner.storageManager.lines;
-    const hoveredLine = lines.find((line) =>
-      this.pathPlanner.ctx.isPointInStroke(line.path, x, y)
-    );
+    const hoveredLine = lines.find((line) => {
+      if (line.path) {
+        return this.pathPlanner.ctx.isPointInStroke(line.path, x, y);
+      }
+    });
 
     // навелись на ту же самую линию, ничего не делаем
     if (

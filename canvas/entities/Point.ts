@@ -17,7 +17,7 @@ class Point implements IPoint {
 
   public isHovered: boolean = false;
   public readonly type = Entities.Point;
-  public path: Path2D;
+  public path?: Path2D;
 
   constructor({ id, x, y }: IPointProps) {
     this.id = id;

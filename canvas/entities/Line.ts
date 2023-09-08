@@ -18,7 +18,7 @@ class Line implements ILine {
   public id: string;
   public readonly type = Entities.Line;
 
-  public path: Path2D;
+  public path?: Path2D;
 
   constructor({ id, startPoint, endPoint }: ILineProps) {
     this.id = id;

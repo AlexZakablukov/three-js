@@ -20,10 +20,12 @@ class RemoveTool implements ITool {
     const hoveredPoint = this.pathPlanner.eventManager.hoveredPoint;
     const hoveredLine = this.pathPlanner.eventManager.hoveredLine;
     if (hoveredPoint) {
+      this.pathPlanner.storageManager.saveToHistory();
       this.pathPlanner.storageManager.removePoint(hoveredPoint.id);
       this.pathPlanner.render();
     }
     if (hoveredLine) {
+      this.pathPlanner.storageManager.saveToHistory();
       this.pathPlanner.storageManager.removeConnection(hoveredLine.id);
       this.pathPlanner.render();
     }

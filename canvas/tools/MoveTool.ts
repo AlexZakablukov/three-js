@@ -24,7 +24,10 @@ class MoveTool implements ITool {
     const hoveredPoint = this.pathPlanner.eventManager.hoveredPoint;
     if (hoveredPoint) {
       this.pathPlanner.storageManager.saveToHistory();
-      // We should use next line if storage history push instead of splice
+      /**
+       * @description
+       * We should use next line if storage history push instead of splice
+       */
       // this.hoveredPoint = this.pathPlanner.storageManager.getPointById(
       //   hoveredPoint.id
       // );

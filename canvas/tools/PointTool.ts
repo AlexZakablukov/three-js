@@ -3,7 +3,6 @@ import { IPathPlanner } from "@/canvas/types/models";
 import { getCoords } from "@/canvas/helpers";
 import Point from "@/canvas/entities/Point";
 import { v4 as uuid } from "uuid";
-import { event } from "next/dist/build/output/log";
 
 interface ILineToolProps {
   pathPlanner: IPathPlanner;
@@ -31,7 +30,7 @@ class PointTool implements IPointTool {
       x,
       y,
     });
-
+    this.pathPlanner.storageManager.saveToHistory();
     this.pathPlanner.storageManager.addPoint(point);
     this.pathPlanner.render();
   }

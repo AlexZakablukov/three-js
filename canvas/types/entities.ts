@@ -7,7 +7,7 @@ export interface IEntity {
   id: string;
   type: Entities;
   isHovered: boolean;
-  path: Path2D;
+  path?: Path2D;
   render: (ctx: CanvasRenderingContext2D) => void;
 }
 
