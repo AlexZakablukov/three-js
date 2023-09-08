@@ -18,5 +18,5 @@ export interface ILineTool extends ITool {
 }
 
 export interface IPointTool extends ITool {
-  draw: (x: number, y: number, radius: number) => void;
+  draw: (x: number, y: number) => void;
 }

@@ -1,14 +1,14 @@
 import Point from "@/canvas/entities/Point";
 import Connection from "@/canvas/entities/Connection";
-import { IStorageHistory } from "@/canvas/types/models";
+import { IStorageState } from "@/canvas/types/models";
 
 /**
  * Creates a deep copy of an IStorageHistory object by creating new Point and Connection instances.
  *
- * @param {IStorageHistory} original - The original IStorageHistory object to copy.
- * @returns {IStorageHistory} A deep copy of the original IStorageHistory object.
+ * @param {IStorageState} original - The original IStorageState object to copy.
+ * @returns {IStorageState} A deep copy of the original IStorageState object.
  */
-function getCopiedState(original) {
+function getCopiedState(original: IStorageState): IStorageState {
   const copiedHistory = {
     points: new Map(),
     connections: new Map(),
