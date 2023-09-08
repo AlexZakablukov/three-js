@@ -111,9 +111,9 @@ class EventManager implements IEventManager {
 
     // Find the point that the pointer is currently hovering over, if any
     const hoveredPoint = points.find((point) => {
-      if (point.path) {
+      if (point.interactiveZone) {
         // Check if the pointer's coordinates are inside the path of the point.
-        return this.pathPlanner.ctx.isPointInPath(point.path, x, y);
+        return this.pathPlanner.ctx.isPointInPath(point.interactiveZone, x, y);
       }
     });
 
@@ -173,9 +173,9 @@ class EventManager implements IEventManager {
 
     // Find the line that the pointer is currently hovering over, if any.
     const hoveredLine = lines.find((line) => {
-      if (line.path) {
+      if (line.interactiveZone) {
         // Check if the pointer's coordinates are inside the stroke of the line.
-        return this.pathPlanner.ctx.isPointInStroke(line.path, x, y);
+        return this.pathPlanner.ctx.isPointInStroke(line.interactiveZone, x, y);
       }
     });
 

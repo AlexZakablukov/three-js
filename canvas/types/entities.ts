@@ -8,6 +8,7 @@ export interface IEntity {
   type: Entities;
   isHovered: boolean;
   path?: Path2D;
+  interactiveZone?: Path2D;
   render: (ctx: CanvasRenderingContext2D) => void;
 }
 

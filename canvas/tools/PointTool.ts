@@ -1,8 +1,10 @@
 import { IPointTool, Tools } from "@/canvas/types/tools";
 import { IPathPlanner } from "@/canvas/types/models";
-import { getCoords } from "@/canvas/helpers";
+import { getCoords, getNearestCoordsToLine } from "@/canvas/helpers";
 import Point from "@/canvas/entities/Point";
 import { v4 as uuid } from "uuid";
+import { IPoint } from "@/canvas/types/entities";
+import Connection from "@/canvas/entities/Connection";
 
 interface ILineToolProps {
   pathPlanner: IPathPlanner;
@@ -17,6 +19,7 @@ class PointTool implements IPointTool {
   public type: Tools = Tools.Point;
 
   private pathPlanner: IPathPlanner;
+  private tempPoint: IPoint | null;
 
   /**
    * @constructor
@@ -36,8 +39,66 @@ class PointTool implements IPointTool {
    * @param {PointerEvent} event - The pointer event generated when the user clicks.
    */
   public onPointerDown = (event: PointerEvent) => {
+    const hoveredLine = this.pathPlanner.eventManager.hoveredLine;
+    if (this.tempPoint && hoveredLine) {
+      this.pathPlanner.storageManager.removePoint(this.tempPoint.id);
+      this.pathPlanner.storageManager.saveToHistory();
+      const point = new Point({
+        id: uuid(),
+        x: this.tempPoint.x,
+        y: this.tempPoint.y,
+      });
+      this.pathPlanner.storageManager.addPoint(point);
+      this.tempPoint = null;
+      this.pathPlanner.storageManager.addConnection(
+        new Connection({
+          id: uuid(),
+          pointIds: [hoveredLine.startPoint.id, point.id],
+        })
+      );
+      this.pathPlanner.storageManager.addConnection(
+        new Connection({
+          id: uuid(),
+          pointIds: [point.id, hoveredLine.endPoint.id],
+        })
+      );
+      this.pathPlanner.storageManager.removeConnection(hoveredLine.id);
+      return;
+    } else {
+      const { x, y } = getCoords(event);
+      this.draw(x, y);
+    }
+  };
+
+  // если навелись на линии то видим временную точку, по нажатию создадим ее
+  public onPointerMove = (event: PointerEvent) => {
     const { x, y } = getCoords(event);
-    this.draw(x, y);
+    const hoveredLine = this.pathPlanner.eventManager.hoveredLine;
+    if (!hoveredLine && this.tempPoint) {
+      this.pathPlanner.storageManager.removePoint(this.tempPoint.id);
+      this.tempPoint = null;
+      this.pathPlanner.render();
+      return;
+    }
+    if (hoveredLine) {
+      const nearest = getNearestCoordsToLine({
+        source: { x, y },
+        line: hoveredLine,
+      });
+
+      if (this.tempPoint) {
+        this.tempPoint.x = nearest.x;
+        this.tempPoint.y = nearest.y;
+      } else {
+        this.tempPoint = new Point({
+          id: uuid(),
+          x: nearest.x,
+          y: nearest.y,
+        });
+        this.pathPlanner.storageManager.addPoint(this.tempPoint);
+      }
+      this.pathPlanner.render();
+    }
   };
 
   /**

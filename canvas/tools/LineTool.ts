@@ -112,7 +112,7 @@ class LineTool implements ILineTool {
         })
       );
       // Render the end point on the canvas.
-      this.endPoint.render(this.pathPlanner.ctx);
+      this.pathPlanner.render();
     }
 
     // Reset variables and clean up the line object.
@@ -136,11 +136,28 @@ class LineTool implements ILineTool {
       // Get the currently hovered point under the pointer's position.
       const hoveredPoint = this.eventManager.hoveredPoint;
 
+      // Check if the Shift key is pressed.
+      const isShiftPressed = event.shiftKey;
+
       // Check if an endpoint exists and it's temporary.
       if (this.isTempEndPoint && this.endPoint) {
-        // Update the endpoint's coordinates to match the pointer's position.
-        this.endPoint.x = x;
-        this.endPoint.y = y;
+        if (isShiftPressed) {
+          const deltaX = Math.abs(x - this.startPoint.x);
+          const deltaY = Math.abs(y - this.startPoint.y);
+          // If Shift is pressed, draw a horizontal line if deltaX is greater than deltaY,
+          // otherwise draw a vertical line.
+          if (deltaX > deltaY) {
+            this.endPoint.x = x;
+            this.endPoint.y = this.startPoint.y;
+          } else {
+            this.endPoint.x = this.startPoint.x;
+            this.endPoint.y = y;
+          }
+        } else {
+          // Update the endpoint's coordinates to match the pointer's position.
+          this.endPoint.x = x;
+          this.endPoint.y = y;
+        }
       } else {
         // If no endpoint or it's not temporary, create a new endpoint at the pointer's position.
         this.isTempEndPoint = true;
