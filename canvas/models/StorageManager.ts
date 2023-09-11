@@ -1,3 +1,4 @@
+import { v4 as uuid } from "uuid";
 import { IConnection, ILine, IPoint } from "@/canvas/types/entities";
 import {
   IPathPlanner,
@@ -5,7 +6,9 @@ import {
   IStorageState,
 } from "@/canvas/types/models";
 import Line from "@/canvas/entities/Line";
-import { getCopiedState } from "@/canvas/helpers";
+import { getCopiedState, getIntersectedPoint } from "@/canvas/helpers";
+import Point from "@/canvas/entities/Point";
+import Connection from "@/canvas/entities/Connection";
 
 const HISTORY_SIZE = 20;
 
@@ -82,6 +85,76 @@ class StorageManager implements IStorageManager {
   get lines(): ILine[] {
     return Array.from(this._lines.values());
   }
+
+  private checkIntersectedLines = () => {
+    const connectionKeys = Array.from(this.state.connections.keys());
+    for (let i = 0; i < connectionKeys.length; i++) {
+      for (let j = i + 1; j < connectionKeys.length; j++) {
+        const connection1 = this.state.connections.get(connectionKeys[i]);
+        const connection2 = this.state.connections.get(connectionKeys[j]);
+
+        const startPoint1 = this.getPointById(connection1.pointIds[0]);
+        const endPoint1 = this.getPointById(connection1.pointIds[1]);
+
+        const startPoint2 = this.getPointById(connection2.pointIds[0]);
+        const endPoint2 = this.getPointById(connection2.pointIds[1]);
+
+        if (!startPoint1 || !endPoint1 || !startPoint2 || !endPoint2) {
+          return;
+        }
+
+        const intersectedCoords = getIntersectedPoint(
+          startPoint1,
+          endPoint1,
+          startPoint2,
+          endPoint2
+        );
+
+        if (!intersectedCoords) {
+          return;
+        }
+
+        const { x, y } = intersectedCoords;
+
+        const intersectedPoint = new Point({
+          id: uuid(),
+          x,
+          y,
+        });
+
+        this.addConnection(
+          new Connection({
+            id: uuid(),
+            pointIds: [connection1.pointIds[0], intersectedPoint.id],
+          })
+        );
+
+        this.addConnection(
+          new Connection({
+            id: uuid(),
+            pointIds: [intersectedPoint.id, connection1.pointIds[1]],
+          })
+        );
+
+        this.addConnection(
+          new Connection({
+            id: uuid(),
+            pointIds: [connection2.pointIds[0], intersectedPoint.id],
+          })
+        );
+
+        this.addConnection(
+          new Connection({
+            id: uuid(),
+            pointIds: [intersectedPoint.id, connection2.pointIds[1]],
+          })
+        );
+
+        this.removeConnection(connection1.id);
+        this.removeConnection(connection2.id);
+      }
+    }
+  };
 
   /**
    * @private
