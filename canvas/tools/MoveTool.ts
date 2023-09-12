@@ -29,7 +29,7 @@ class MoveTool implements ITool {
     this.pathPlanner = pathPlanner;
     // Enable point hover checking and disable line hover checking for the event manager.
     this.pathPlanner.eventManager.isCheckHoveredPoint = true;
-    this.pathPlanner.eventManager.isCheckHoveredLine = false;
+    this.pathPlanner.eventManager.isCheckHoveredLines = false;
   }
 
   /**

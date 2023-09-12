@@ -30,7 +30,7 @@ class PointTool implements IPointTool {
     this.pathPlanner = pathPlanner;
     // Disable point hover checking and enable line hover checking for the event manager.
     this.pathPlanner.eventManager.isCheckHoveredPoint = false;
-    this.pathPlanner.eventManager.isCheckHoveredLine = true;
+    this.pathPlanner.eventManager.isCheckHoveredLines = true;
   }
 
   /**
@@ -39,8 +39,9 @@ class PointTool implements IPointTool {
    * @param {PointerEvent} event - The pointer event generated when the user clicks.
    */
   public onPointerDown = (event: PointerEvent) => {
-    const hoveredLine = this.pathPlanner.eventManager.hoveredLine;
-    if (this.tempPoint && hoveredLine) {
+    const hoveredLines = this.pathPlanner.eventManager.hoveredLines;
+
+    if (this.tempPoint && hoveredLines.length) {
       this.pathPlanner.storageManager.removePoint(this.tempPoint.id);
       this.pathPlanner.storageManager.saveToHistory();
       const point = new Point({
@@ -50,19 +51,23 @@ class PointTool implements IPointTool {
       });
       this.pathPlanner.storageManager.addPoint(point);
       this.tempPoint = null;
-      this.pathPlanner.storageManager.addConnection(
-        new Connection({
-          id: uuid(),
-          pointIds: [hoveredLine.startPoint.id, point.id],
-        })
-      );
-      this.pathPlanner.storageManager.addConnection(
-        new Connection({
-          id: uuid(),
-          pointIds: [point.id, hoveredLine.endPoint.id],
-        })
-      );
-      this.pathPlanner.storageManager.removeConnection(hoveredLine.id);
+
+      hoveredLines.forEach((line) => {
+        this.pathPlanner.storageManager.addConnection(
+          new Connection({
+            id: uuid(),
+            pointIds: [line.startPoint.id, point.id],
+          })
+        );
+        this.pathPlanner.storageManager.addConnection(
+          new Connection({
+            id: uuid(),
+            pointIds: [point.id, line.endPoint.id],
+          })
+        );
+        this.pathPlanner.storageManager.removeConnection(line.id);
+      });
+      this.pathPlanner.storageManager.generateLines();
       return;
     } else {
       const { x, y } = getCoords(event);
@@ -73,17 +78,17 @@ class PointTool implements IPointTool {
   // если навелись на линии то видим временную точку, по нажатию создадим ее
   public onPointerMove = (event: PointerEvent) => {
     const { x, y } = getCoords(event);
-    const hoveredLine = this.pathPlanner.eventManager.hoveredLine;
-    if (!hoveredLine && this.tempPoint) {
+    const hoveredLines = this.pathPlanner.eventManager.hoveredLines;
+    if (!hoveredLines.length && this.tempPoint) {
       this.pathPlanner.storageManager.removePoint(this.tempPoint.id);
       this.tempPoint = null;
       this.pathPlanner.render();
       return;
     }
-    if (hoveredLine) {
+    if (hoveredLines.length) {
       const nearest = getNearestCoordsToLine({
         source: { x, y },
-        line: hoveredLine,
+        line: hoveredLines[0],
       });
 
       if (this.tempPoint) {

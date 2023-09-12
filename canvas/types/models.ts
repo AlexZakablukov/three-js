@@ -22,9 +22,9 @@ export interface IResizeManager {
 
 export interface IEventManager {
   hoveredPoint: IPoint | null;
-  hoveredLine: ILine | null;
+  hoveredLines: ILine[];
   isCheckHoveredPoint: boolean;
-  isCheckHoveredLine: boolean;
+  isCheckHoveredLines: boolean;
 
   destroy: () => void;
 }
@@ -42,6 +42,7 @@ export interface IStorageManager {
 
   undo(): void;
   redo(): void;
+  generateLines(): void;
   saveToHistory(): void;
   generateLines(): void;
   getPointById(id: string): IPoint | null;

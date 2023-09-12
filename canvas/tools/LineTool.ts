@@ -47,7 +47,7 @@ class LineTool implements ILineTool {
     this.storageManager = pathPlanner.storageManager;
     this.eventManager = pathPlanner.eventManager;
     this.eventManager.isCheckHoveredPoint = true;
-    this.eventManager.isCheckHoveredLine = false;
+    this.eventManager.isCheckHoveredLines = false;
   }
 
   /**
@@ -105,12 +105,13 @@ class LineTool implements ILineTool {
     } else {
       // If the line ended at a different point, add the end point and create a connection.
       this.storageManager.addPoint(this.endPoint);
-      this.storageManager.addConnection(
-        new Connection({
-          id: uuid(),
-          pointIds: [this.startPoint.id, this.endPoint.id],
-        })
-      );
+      const connection = new Connection({
+        id: uuid(),
+        pointIds: [this.startPoint.id, this.endPoint.id],
+      });
+      this.storageManager.addConnection(connection);
+      // this.pathPlanner.storageManager.checkIntersectedConnections(connection);
+      this.pathPlanner.storageManager.generateLines();
       // Render the end point on the canvas.
       this.pathPlanner.render();
     }

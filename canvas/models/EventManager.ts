@@ -20,7 +20,9 @@ class EventManager implements IEventManager {
   public hoveredPoint: IPoint | null = null;
   public hoveredLine: ILine | null = null;
   public isCheckHoveredPoint: boolean = false;
-  public isCheckHoveredLine: boolean = false;
+  public isCheckHoveredLines: boolean = false;
+
+  public hoveredLines: ILine[] = [];
 
   private pathPlanner: IPathPlanner;
 
@@ -86,8 +88,8 @@ class EventManager implements IEventManager {
       this.checkHoveredPoint(event);
     }
 
-    if (this.isCheckHoveredLine) {
-      this.checkHoveredLine(event);
+    if (this.isCheckHoveredLines) {
+      this.checkHoveredLines(event);
     }
 
     const activeTool = this.pathPlanner.tool;
@@ -159,64 +161,28 @@ class EventManager implements IEventManager {
     }
   }
 
-  /**
-   * @private
-   * @param {PointerEvent} event - The pointer event to check.
-   * @description Checks for hovered lines based on the pointer event's coordinates.
-   */
-  private checkHoveredLine(event: PointerEvent) {
-    // Extract the pointer's coordinates from the event.
+  private checkHoveredLines = (event: PointerEvent) => {
     const { x, y } = getCoords(event);
-
-    // Get the list of lines from the storage manager.
     const lines = this.pathPlanner.storageManager.lines;
 
-    // Find the line that the pointer is currently hovering over, if any.
-    const hoveredLine = lines.find((line) => {
-      if (line.interactiveZone) {
-        // Check if the pointer's coordinates are inside the stroke of the line.
-        return this.pathPlanner.ctx.isPointInStroke(line.interactiveZone, x, y);
-      }
+    this.hoveredLines.forEach((line) => {
+      line.isHovered = false;
     });
 
-    // Check if the pointer is hovering over the same line as before,
-    // and do nothing if it is.
-    if (
-      hoveredLine &&
-      this.hoveredLine &&
-      hoveredLine.id === this.hoveredLine.id
-    ) {
-      return;
-    }
+    const hoveredLines = lines.filter((line) => {
+      if (!line.interactiveZone) {
+        return false;
+      }
+      return this.pathPlanner.ctx.isPointInStroke(line.interactiveZone, x, y);
+    });
 
-    // If the pointer is not hovering over any line but a line was previously hovered, clear the hover state.
-    if (!hoveredLine && this.hoveredLine) {
-      this.hoveredLine.isHovered = false;
-      this.hoveredLine = null;
-      this.pathPlanner.render();
-    }
+    hoveredLines.forEach((line) => {
+      line.isHovered = true;
+    });
 
-    // If the pointer is hovering over a different line, update the hover state for both lines.
-    if (
-      hoveredLine &&
-      this.hoveredLine &&
-      hoveredLine.id !== this.hoveredLine.id
-    ) {
-      this.hoveredLine.isHovered = false;
-      hoveredLine.isHovered = true;
-      this.hoveredLine = hoveredLine;
-      this.pathPlanner.render();
-      return;
-    }
-
-    // If the pointer is hovering over a line for the first time, set its hover state.
-    if (hoveredLine && !this.hoveredLine) {
-      hoveredLine.isHovered = true;
-      this.hoveredLine = hoveredLine;
-      this.pathPlanner.render();
-      return;
-    }
-  }
+    this.hoveredLines = hoveredLines;
+    this.pathPlanner.render();
+  };
 
   /**
    * @public

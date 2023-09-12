@@ -88,10 +88,6 @@ class PathPlanner implements IPathPlanner {
 
     this.renderLines();
     this.renderPoints();
-    // console.log("state", {
-    //   point: this.storageManager.points,
-    //   connection: this.storageManager.connections,
-    // });
   };
 
   /**

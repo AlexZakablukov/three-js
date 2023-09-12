@@ -1,15 +1,16 @@
-import { ILine, IPoint } from "@/canvas/types/entities";
+import { IPoint } from "@/canvas/types/entities";
 import { ICoords } from "@/canvas/types/helpers";
 
 /**
- * Calculate the intersection point of two line segments.
- * line intercept math by Paul Bourke http://paulbourke.net/geometry/pointlineplane/
+ * Calculates the intersection point of two line segments defined by their start and end points.
  *
- * @param {ILine} line1 - The first line segment defined by its start and end points.
- * @param {ILine} line2 - The second line segment defined by its start and end points.
+ * @param {IPoint} startPoint1 - The start point of the first line segment.
+ * @param {IPoint} endPoint1 - The end point of the first line segment.
+ * @param {IPoint} startPoint2 - The start point of the second line segment.
+ * @param {IPoint} endPoint2 - The end point of the second line segment.
  *
- * @returns {ICoords|false} - If the lines intersect, returns an object with the x and y coordinates of the intersection.
- *                            If the lines do not intersect, returns false.
+ * @returns {(ICoords | false)} - Returns the coordinates of the intersection point as an object with `x` and `y` properties,
+ *                               or `false` if there is no intersection or the lines are parallel.
  */
 const getIntersectedPoint = (
   startPoint1: IPoint,

@@ -1,4 +1,3 @@
-import { v4 as uuid } from "uuid";
 import { IConnection, ILine, IPoint } from "@/canvas/types/entities";
 import {
   IPathPlanner,
@@ -6,9 +5,7 @@ import {
   IStorageState,
 } from "@/canvas/types/models";
 import Line from "@/canvas/entities/Line";
-import { getCopiedState, getIntersectedPoint } from "@/canvas/helpers";
-import Point from "@/canvas/entities/Point";
-import Connection from "@/canvas/entities/Connection";
+import { getCopiedState } from "@/canvas/helpers";
 
 const HISTORY_SIZE = 20;
 
@@ -86,82 +83,105 @@ class StorageManager implements IStorageManager {
     return Array.from(this._lines.values());
   }
 
-  private checkIntersectedLines = () => {
-    const connectionKeys = Array.from(this.state.connections.keys());
-    for (let i = 0; i < connectionKeys.length; i++) {
-      for (let j = i + 1; j < connectionKeys.length; j++) {
-        const connection1 = this.state.connections.get(connectionKeys[i]);
-        const connection2 = this.state.connections.get(connectionKeys[j]);
-
-        const startPoint1 = this.getPointById(connection1.pointIds[0]);
-        const endPoint1 = this.getPointById(connection1.pointIds[1]);
-
-        const startPoint2 = this.getPointById(connection2.pointIds[0]);
-        const endPoint2 = this.getPointById(connection2.pointIds[1]);
-
-        if (!startPoint1 || !endPoint1 || !startPoint2 || !endPoint2) {
-          return;
-        }
-
-        const intersectedCoords = getIntersectedPoint(
-          startPoint1,
-          endPoint1,
-          startPoint2,
-          endPoint2
-        );
-
-        if (!intersectedCoords) {
-          return;
-        }
-
-        const { x, y } = intersectedCoords;
-
-        const intersectedPoint = new Point({
-          id: uuid(),
-          x,
-          y,
-        });
-
-        this.addConnection(
-          new Connection({
-            id: uuid(),
-            pointIds: [connection1.pointIds[0], intersectedPoint.id],
-          })
-        );
-
-        this.addConnection(
-          new Connection({
-            id: uuid(),
-            pointIds: [intersectedPoint.id, connection1.pointIds[1]],
-          })
-        );
-
-        this.addConnection(
-          new Connection({
-            id: uuid(),
-            pointIds: [connection2.pointIds[0], intersectedPoint.id],
-          })
-        );
-
-        this.addConnection(
-          new Connection({
-            id: uuid(),
-            pointIds: [intersectedPoint.id, connection2.pointIds[1]],
-          })
-        );
-
-        this.removeConnection(connection1.id);
-        this.removeConnection(connection2.id);
-      }
-    }
-  };
+  // public checkIntersectedConnections = (connectionToCheck: IConnection) => {
+  //   const startPoint1 = this.getPointById(connectionToCheck.pointIds[0]);
+  //   const endPoint1 = this.getPointById(connectionToCheck.pointIds[1]);
+  //
+  //   if (!startPoint1 || !endPoint1) {
+  //     return;
+  //   }
+  //
+  //   [...this.state.connections.values()].forEach((connection) => {
+  //     if (connectionToCheck.id === connection.id) {
+  //       return;
+  //     }
+  //
+  //     if (
+  //       connection.hasPoint(connectionToCheck.pointIds[0]) ||
+  //       connection.hasPoint(connectionToCheck.pointIds[1])
+  //     ) {
+  //       return;
+  //     }
+  //
+  //     const startPoint2 = this.getPointById(connection.pointIds[0]);
+  //     const endPoint2 = this.getPointById(connection.pointIds[1]);
+  //
+  //     console.log({
+  //       startPoint2,
+  //       endPoint2,
+  //     });
+  //
+  //     if (!startPoint2 || !endPoint2) {
+  //       return;
+  //     }
+  //
+  //     const intersectedCoords = getIntersectedPoint(
+  //       startPoint1,
+  //       endPoint1,
+  //       startPoint2,
+  //       endPoint2
+  //     );
+  //
+  //     if (!intersectedCoords) {
+  //       return;
+  //     }
+  //
+  //     console.log({
+  //       intersectedCoords,
+  //     });
+  //
+  //     const { x, y } = intersectedCoords;
+  //
+  //     const intersectedPoint = new Point({
+  //       id: uuid(),
+  //       x,
+  //       y,
+  //     });
+  //
+  //     this.addPoint(intersectedPoint);
+  //
+  //     this.addConnection(
+  //       new Connection({
+  //         id: uuid(),
+  //         pointIds: [connectionToCheck.pointIds[0], intersectedPoint.id],
+  //       })
+  //     );
+  //
+  //     const newConnectionToCheck = new Connection({
+  //       id: uuid(),
+  //       pointIds: [intersectedPoint.id, connectionToCheck.pointIds[1]],
+  //     });
+  //
+  //     this.addConnection(newConnectionToCheck);
+  //
+  //     this.addConnection(
+  //       new Connection({
+  //         id: uuid(),
+  //         pointIds: [connection.pointIds[0], intersectedPoint.id],
+  //       })
+  //     );
+  //
+  //     this.addConnection(
+  //       new Connection({
+  //         id: uuid(),
+  //         pointIds: [intersectedPoint.id, connection.pointIds[1]],
+  //       })
+  //     );
+  //
+  //     this.removeConnection(connection.id);
+  //     this.removeConnection(connectionToCheck.id);
+  //     connectionToCheck = newConnectionToCheck;
+  //   });
+  //
+  //   console.log("state", this.state, connectionToCheck);
+  // };
 
   /**
    * @private
    * @description Generates lines based on the connections in the current state.
    * It clears the existing lines and recreates them using the current connections.
    */
-  private generateLines = () => {
+  public generateLines = () => {
     // Clear the existing lines map to start fresh.
     this._lines.clear();
     // Iterate through all connections in the current state.
@@ -224,7 +244,6 @@ class StorageManager implements IStorageManager {
    */
   public addPoint = (point: IPoint) => {
     this.state.points.set(point.id, point);
-    this.generateLines();
   };
 
   /**
@@ -238,7 +257,6 @@ class StorageManager implements IStorageManager {
     connections.forEach((connection) => {
       this.removeConnection(connection.id);
     });
-    this.generateLines();
   };
 
   /**
@@ -274,7 +292,6 @@ class StorageManager implements IStorageManager {
    */
   public addConnection = (connection: IConnection) => {
     this.state.connections.set(connection.id, connection);
-    this.generateLines();
   };
 
   /**
@@ -284,7 +301,6 @@ class StorageManager implements IStorageManager {
    */
   public removeConnection = (id: string) => {
     this.state.connections.delete(id);
-    this.generateLines();
   };
 
   /**
